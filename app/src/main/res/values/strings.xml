@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">QRLink</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="title_activity_auth">Login</string>
+    <string name="title_activity_home">Home</string>
+    <string name="title_activity_pdf">Previsualizacion</string>
+    <string name="title_activity_main">QRLink</string>
+
+    <string name="title_activity_main2">Home</string>
+    <string name="title_home">Escanear</string>
+    <string name="title_dashboard">Generar</string>
+    <string name="title_qr">Mis QR</string>
+    <string name="title_notifications">Acerca de</string>
+
+    <string-array name="qrType">
+        <item>Texto</item>
+        <item>Email</item>
+        <item>Telefono</item>
+        <item>SMS</item>
+        <item>Wifi</item>
+        <item>Evento</item>
+        <item>PDF</item>
+    </string-array>
+
+    <string-array name="qrContent">
+        <item>Dinamico</item>
+        <item>Estatico</item>
+    </string-array>
+</resources>

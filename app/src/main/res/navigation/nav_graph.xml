@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_create">
+
+    <fragment
+        android:id="@+id/navigation_create"
+        android:name="com.ipn.qrlink.fragments.CreateFragment"
+        android:label="fragment_create"
+        tools:layout="@layout/fragment_create" />
+
+    <fragment
+        android:id="@+id/navigation_about"
+        android:name="com.ipn.qrlink.fragments.AboutFragment"
+        android:label="fragment_about"
+        tools:layout="@layout/fragment_about" />
+
+    <fragment
+        android:id="@+id/navigation_list"
+        android:name="com.ipn.qrlink.fragments.QRListFragment"
+        android:label="fragment_qrlist"
+        tools:layout="@layout/fragment_qrlist">
+        <action
+            android:id="@+id/action_QRListFragment_to_editFragment"
+            app:destination="@id/navigation_edit" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_edit"
+        android:name="com.ipn.qrlink.fragments.EditFragment"
+        android:label="fragment_edit"
+        tools:layout="@layout/fragment_edit">
+        <action
+            android:id="@+id/action_editFragment_to_QRListFragment"
+            app:destination="@id/navigation_list" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_scan"
+        android:name="com.ipn.qrlink.fragments.ScanFragment"
+        android:label="fragment_scan"
+        tools:layout="@layout/fragment_scan" />
+</navigation>
