@@ -18,6 +18,7 @@ import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import androidx.core.net.MailTo
 import org.w3c.dom.Text
+import java.net.URLDecoder
 
 class qrListAdapter(private val context: Context, private val dataSource: ArrayList<qrCode>) :
     BaseAdapter() {
@@ -60,7 +61,8 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
         return rowView
     }
 
-    private fun decodeQRContent(content: String) : String {
+    private fun decodeQRContent(encodedContent: String) : String {
+        val content = URLDecoder.decode(encodedContent)
         when {
             content.startsWith("mailto:", ignoreCase = true) -> {
                 val decodedMail = MailTo.parse(content)
@@ -108,7 +110,8 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
         }
     }
 
-    private fun getQRContentType(content: String) : String {
+    private fun getQRContentType(encodedContent: String) : String {
+        val content = URLDecoder.decode(encodedContent)
         return when {
             content.startsWith("mailto:", ignoreCase = true) -> "Correo eletronico"
             content.startsWith("tel:", ignoreCase = true) -> "Llamada"
@@ -121,7 +124,8 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
         }
     }
 
-    private fun getQRContentImage(content: String) : Int {
+    private fun getQRContentImage(encodedContent: String) : Int {
+        val content = URLDecoder.decode(encodedContent)
        return when  {
             content.startsWith("mailto:", ignoreCase = true) -> R.drawable.maillogo
             content.startsWith("tel:", ignoreCase = true) -> R.drawable.phonelogo

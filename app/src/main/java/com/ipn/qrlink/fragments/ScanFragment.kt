@@ -18,9 +18,14 @@ import androidx.core.net.MailTo
 import androidx.fragment.app.Fragment
 import com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
+import com.ipn.qrlink.activities.HomeActivity
+import com.ipn.qrlink.activities.PDFActivity
 import com.ipn.qrlink.databinding.FragmentScanBinding
+import java.net.URLDecoder
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -77,7 +82,8 @@ class ScanFragment : Fragment() {
     }
 
 
-    private fun decodeAndLoadQRContent(content: String) : String {
+    private fun decodeAndLoadQRContent(encodedContent: String) : String {
+        val content = URLDecoder.decode(encodedContent)
         when {
             content.startsWith("mailto:", ignoreCase = true) -> {
                 val decodedMail = MailTo.parse(content)
@@ -170,6 +176,14 @@ class ScanFragment : Fragment() {
                     startActivity(intent)
                 }
                 return "Evento\nNombre: $title\nUbicacion: $location\nFecha de inicio: $start\nFinal: $end"
+            }
+            content.endsWith(".pdf",ignoreCase = true) -> {
+                val intent = Intent(requireContext(), PDFActivity::class.java)
+                val documentURI = "hola:PDFs/"+(activity as HomeActivity).email!!+"/$content"
+                intent.putExtra("pdf", documentURI)
+                startActivity(intent)
+
+                return content
             }
             URLUtil.isValidUrl(content) -> {
                 val webpage: Uri = Uri.parse(content)

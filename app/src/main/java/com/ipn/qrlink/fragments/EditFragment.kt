@@ -3,6 +3,7 @@ package com.ipn.qrlink.fragments
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
+import android.app.ProgressDialog
 import android.app.TimePickerDialog
 import android.content.ContentValues
 import android.content.Intent
@@ -27,6 +28,7 @@ import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.UploadTask
 import com.google.firebase.storage.ktx.storage
 import com.ipn.qrlink.activities.HomeActivity
 import com.ipn.qrlink.activities.PDFActivity
@@ -35,6 +37,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -48,8 +51,10 @@ class EditFragment : Fragment() {
     private var startDate: Calendar? = null
     private var endDate: Calendar? = null
 
-    private lateinit var pdfUri: Uri
     private lateinit var pdfName: String
+
+    private lateinit var newPdfUri: Uri
+    private lateinit var newPdfName: String
 
     // Referencia a la base de datos firestore
     var firebaseFirestore = FirebaseFirestore.getInstance()
@@ -128,23 +133,60 @@ class EditFragment : Fragment() {
 
         // Evento al clickear el boton "Actualizar"
         binding.buttonUpdate.setOnClickListener {
-            if (contentIsNotNull()) {
+            if (updatedContentIsNotNull()) {
                 val qrHashMap: MutableMap<String, Any> = HashMap()
 
-                if (qrContent!!.endsWith(".pdf",ignoreCase = true)) {
+                if (binding.qrContentSpinner.selectedItemPosition == 6) {
+                    val dialog = ProgressDialog(context)
+                    dialog.setMessage("Actualizando documento")
+                    dialog.show()
 
+                    val storageRef = Firebase.storage.reference
+                    val reference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$pdfName")
+
+                    reference.delete().addOnSuccessListener {
+                        val newReference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$newPdfName")
+                        val uploadTask: UploadTask = newReference.putFile(newPdfUri)
+
+                        uploadTask.addOnFailureListener {  exception ->
+                            Toast.makeText(context, "Ocurrio un error al subir el documento $exception", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                        }.addOnSuccessListener {
+                            Toast.makeText(context, "Documento actualizado exitosamente", Toast.LENGTH_SHORT).show()
+                            pdfName = newPdfName
+                            // Actualizamos el contenido del UUID
+                            qrHashMap[qrUUID!!] = getEncodedContent()
+                            qrHashMap[qrUUID!!]
+
+                            firebaseFirestore.collection("Codigos").document((activity as HomeActivity).email!!).update(qrHashMap)
+
+                            Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                        }
+                    }.addOnFailureListener {
+                        dialog.dismiss()
+                        Toast.makeText(context, "Ocurrio un error al actualizar el documento", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    // Actualizamos el contenido del UUID
+                    qrHashMap[qrUUID!!] = getEncodedContent()
+
+                    if (::pdfName.isInitialized) {
+                        val storageRef = Firebase.storage.reference
+                        val reference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$pdfName")
+
+                        reference.delete()
+                        pdfName = ""
+                    }
+
+                    firebaseFirestore.collection("Codigos").document((activity as HomeActivity).email!!).update(qrHashMap)
+
+                    Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
                 }
-
-                // Actualizamos el contenido del UUID
-                qrHashMap[qrUUID!!] = encodeQRContent()
-
-                firebaseFirestore.collection("Codigos").document((activity as HomeActivity).email!!).update(qrHashMap)
-
-                Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(
                     binding.root.context,
-                    "Introduzca algunos datos para generar el código QR",
+                    "Introduzca algunos datos para actualizar el código QR",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -197,12 +239,10 @@ class EditFragment : Fragment() {
 
         binding.buttonPreview.setOnClickListener {
             if (contentIsNotNull()) {
-
-                 val intent = Intent(requireContext(), PDFActivity::class.java)
+                val intent = Intent(requireContext(), PDFActivity::class.java)
                 val documentURI = "hola:PDFs/"+(activity as HomeActivity).email!!+"/$pdfName"
-                    intent.putExtra("pdf", documentURI)
-                    startActivity(intent)
-
+                intent.putExtra("pdf", documentURI)
+                startActivity(intent)
             } else Toast.makeText(context, "Primero sube un documento", Toast.LENGTH_SHORT).show()
         }
 
@@ -261,6 +301,15 @@ class EditFragment : Fragment() {
                 Toast.makeText(context, "Error al guardar: $e", Toast.LENGTH_SHORT).show()
             }
         }
+
+        binding.buttonUploadFile.setOnClickListener {
+            val galleryIntent = Intent()
+            galleryIntent.action = Intent.ACTION_GET_CONTENT
+
+            // We will be redirected to choose pdf
+            galleryIntent.type = "application/pdf"
+            startActivityForResult(galleryIntent, 1)
+        }
     }
 
     private fun contentIsNotNull() : Boolean {
@@ -276,12 +325,25 @@ class EditFragment : Fragment() {
         }
     }
 
+    private fun updatedContentIsNotNull() : Boolean {
+        return when (binding.qrContentSpinner.selectedItem) {
+            "Texto" -> binding.editTextText.text!!.isNotEmpty()
+            "Email" -> binding.editTextEmail.text!!.isNotEmpty() && binding.editTextEmailSubject.text!!.isNotEmpty() && binding.editTextEmailMessage.text!!.isNotEmpty()
+            "Telefono" -> binding.editTextPhone.text!!.isNotEmpty()
+            "SMS" -> binding.editTextSMSPhone.text!!.isNotEmpty() && binding.editTextSMSMessage.text!!.isNotEmpty()
+            "Wifi" -> binding.editTextWifiSSID.text!!.isNotEmpty() && binding.editTextWifiPassword.text!!.isNotEmpty()
+            "Evento" -> binding.editTextCalTitle.text!!.isNotEmpty() && binding.editTextCalLocation.text!!.isNotEmpty() && binding.editTextCalStart.text!!.isNotEmpty() && binding.editTextCalEnd.text!!.isNotEmpty()
+            "PDF" -> ::newPdfName.isInitialized
+            else -> false
+        }
+    }
+
     @SuppressLint("Range")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == Activity.RESULT_OK) {
-            pdfUri = data?.data!!
+            newPdfUri = data?.data!!
             val uri: Uri = data.data!!
             val uriString: String = uri.toString()
             if (uriString.startsWith("content://")) {
@@ -290,8 +352,8 @@ class EditFragment : Fragment() {
                     // Setting the PDF to the TextView
                     myCursor = requireContext().contentResolver.query(uri, null, null, null, null)
                     if (myCursor != null && myCursor.moveToFirst()) {
-                        pdfName = myCursor.getString(myCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                        binding.textViewDocumentName.text = "Documento: $pdfName"
+                        newPdfName = myCursor.getString(myCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                        binding.textViewDocumentName.text = "Documento: $newPdfName"
                     }
                 } finally {
                     myCursor?.close()
@@ -370,6 +432,13 @@ class EditFragment : Fragment() {
         binding.textInputCalEnd.isEnabled = false
     }
 
+    private fun getEncodedContent() : String {
+        var string = encodeQRContent()
+        string = URLEncoder.encode(string, "UTF-8");
+        string.replace(" ", "%20");
+        return string
+    }
+
     private fun encodeQRContent() : String {
         return when (binding.qrContentSpinner.selectedItem) {
             "Texto" -> binding.editTextText.text.toString()
@@ -397,12 +466,13 @@ class EditFragment : Fragment() {
                         "\nDTEND:" + dateFormatter.format(endDate!!.time) +
                         "\nEND:VEVENT"
             }
-            "PDF" -> pdfName
+            "PDF" -> newPdfName
             else -> "ERROR"
         }
     }
 
-    private fun decodeAndLoadQRContent(content: String) {
+    private fun decodeAndLoadQRContent(encodedContent: String) {
+        val content = URLDecoder.decode(encodedContent)
         when  {
             content.startsWith("mailto:", ignoreCase = true) -> {
                 val decodedMail = MailTo.parse(content)
@@ -480,7 +550,7 @@ class EditFragment : Fragment() {
             binding.root.context,
             "Genera un codigo QR primero",
             Toast.LENGTH_SHORT
-        ).show() else (activity as HomeActivity).GuardarQR(encodeQRContent(), qrImageBitmap!!)
+        ).show() else (activity as HomeActivity).GuardarQR(getEncodedContent(), qrImageBitmap!!)
     }
 
     fun onBackPressed() {

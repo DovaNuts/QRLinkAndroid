@@ -35,6 +35,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.net.URLEncoder
 import java.util.*
 
 
@@ -53,7 +54,6 @@ class CreateFragment : Fragment() {
 
     // Referencia a la base de datos firestore
     var firebaseFirestore = FirebaseFirestore.getInstance()
-
 
     // Variable para guardar la imagen en que se genera a partir del ID del codigo QR para escanear
     var qrImageBitmap: Bitmap? = null
@@ -217,12 +217,8 @@ class CreateFragment : Fragment() {
     }
 
     private fun uploadDocument() : Boolean {
-        // Here we are initialising the progress dialog box
         val dialog = ProgressDialog(context)
         dialog.setMessage("Subiendo documento")
-
-        // this will show message uploading
-        // while pdf is uploading
         dialog.show()
 
         val storageRef = Firebase.storage.reference
@@ -232,11 +228,10 @@ class CreateFragment : Fragment() {
         uploadTask.addOnFailureListener {  exception ->
             Toast.makeText(context, "Ocurrio un error al subir el documento $exception", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
-        }
-            .addOnSuccessListener {
+        }.addOnSuccessListener {
                 Toast.makeText(context, "Documento subido exitosamente", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
-            }
+        }
 
         return true
     }
@@ -260,11 +255,11 @@ class CreateFragment : Fragment() {
                     }
                 }
 
-                qrHashMap[codeUUID] = encodeQRContent()
+                qrHashMap[codeUUID] = getEncodedContent()
                 qrImageBitmap = (activity as HomeActivity).CrearImagenQR(codeUUID)
             } else {
                 codeUUID += "E"
-                qrHashMap[codeUUID] = encodeQRContent()
+                qrHashMap[codeUUID] = getEncodedContent()
                 qrImageBitmap = (activity as HomeActivity).CrearImagenQR(qrHashMap[codeUUID] as String)
             }
 
@@ -293,6 +288,13 @@ class CreateFragment : Fragment() {
             "PDF" -> ::pdfName.isInitialized
             else -> false
         }
+    }
+
+    private fun getEncodedContent() : String {
+        var string = encodeQRContent()
+        string = URLEncoder.encode(string, "UTF-8");
+        string.replace(" ", "%20");
+        return string
     }
 
     private fun encodeQRContent() : String {
@@ -332,7 +334,7 @@ class CreateFragment : Fragment() {
             binding.root.context,
             "Genera un codigo QR primero",
             Toast.LENGTH_SHORT
-        ).show() else (activity as HomeActivity).GuardarQR(encodeQRContent(), qrImageBitmap!!)
+        ).show() else (activity as HomeActivity).GuardarQR(getEncodedContent(), qrImageBitmap!!)
     }
 
     override fun onDestroyView() {
