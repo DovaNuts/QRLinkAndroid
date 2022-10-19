@@ -16,6 +16,7 @@ import android.icu.util.Calendar
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +24,10 @@ import android.widget.AdapterView
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.ktx.Firebase
@@ -38,7 +43,6 @@ import java.io.InputStreamReader
 import java.net.URLEncoder
 import java.util.*
 
-
 class CreateFragment : Fragment() {
     private var _binding: FragmentCreateBinding? = null
 
@@ -51,6 +55,8 @@ class CreateFragment : Fragment() {
 
     private lateinit var pdfUri: Uri
     private lateinit var pdfName: String
+
+    private var connected = false
 
     // Referencia a la base de datos firestore
     var firebaseFirestore = FirebaseFirestore.getInstance()
@@ -70,8 +76,8 @@ class CreateFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        var lastSelectedQRContentView:View = binding.textInputLayout
-        var currentSelectedQRContentView:View = binding.textInputLayout
+        var lastSelectedQRContentView: View = binding.textInputLayout
+        var currentSelectedQRContentView: View = binding.textInputLayout
 
         var lastSelectedPostion: Int = 0
         var currentSelectedPosition: Int = 0
@@ -79,50 +85,65 @@ class CreateFragment : Fragment() {
         val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm")
 
         // Spinner tipo de contenido
-        binding.qrContentSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-            }
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                lastSelectedQRContentView = currentSelectedQRContentView
-                lastSelectedQRContentView.visibility = View.GONE
-
-                lastSelectedPostion = currentSelectedPosition
-                currentSelectedPosition = position
-
-                when (position) {
-                    0 -> currentSelectedQRContentView = binding.textInputLayout
-                    1 -> currentSelectedQRContentView = binding.emailHolder
-                    2 -> currentSelectedQRContentView = binding.textInputPhone
-                    3 -> currentSelectedQRContentView = binding.smsHolder
-                    4 -> currentSelectedQRContentView = binding.wifiHolder
-                    5 -> currentSelectedQRContentView = binding.calendarHolder
-                    6 -> {
-                        if (binding.qrTypeSpinner.selectedItemPosition == 1) {
-                            binding.qrContentSpinner.setSelection(lastSelectedPostion)
-                            Toast.makeText(
-                                context,
-                                "PDF solo esta disponible como codigo dinamico",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } else currentSelectedQRContentView = binding.pdfHolder
-                    }
+        binding.qrContentSpinner.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onNothingSelected(parent: AdapterView<*>?) {
                 }
 
-                currentSelectedQRContentView.visibility = View.VISIBLE
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    lastSelectedQRContentView = currentSelectedQRContentView
+                    lastSelectedQRContentView.visibility = View.GONE
+
+                    lastSelectedPostion = currentSelectedPosition
+                    currentSelectedPosition = position
+
+                    when (position) {
+                        0 -> currentSelectedQRContentView = binding.textInputLayout
+                        1 -> currentSelectedQRContentView = binding.emailHolder
+                        2 -> currentSelectedQRContentView = binding.textInputPhone
+                        3 -> currentSelectedQRContentView = binding.smsHolder
+                        4 -> currentSelectedQRContentView = binding.wifiHolder
+                        5 -> currentSelectedQRContentView = binding.calendarHolder
+                        6 -> {
+                            if (binding.qrTypeSpinner.selectedItemPosition == 1) {
+                                binding.qrContentSpinner.setSelection(lastSelectedPostion)
+                                Toast.makeText(
+                                    context,
+                                    "PDF solo esta disponible como codigo dinamico",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            } else currentSelectedQRContentView = binding.pdfHolder
+                        }
+                    }
+
+                    currentSelectedQRContentView.visibility = View.VISIBLE
+                }
             }
-        }
 
         // Spinner tipo de codigo
         binding.qrTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
 
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
                 if (position == 1 && currentSelectedQRContentView == binding.pdfHolder) {
                     binding.qrContentSpinner.setSelection(0)
 
-                    Toast.makeText(context, "PDF solo esta disponible como codigo dinamico", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        "PDF solo esta disponible como codigo dinamico",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
@@ -144,14 +165,18 @@ class CreateFragment : Fragment() {
                 requireContext(),
                 { _, year, monthOfYear, dayOfMonth ->
                     startDate!!.set(year, monthOfYear, dayOfMonth)
-                    TimePickerDialog(context,
+                    TimePickerDialog(
+                        context,
                         { _, hourOfDay, minute ->
                             startDate!!.set(Calendar.HOUR_OF_DAY, hourOfDay)
                             startDate!!.set(Calendar.MINUTE, minute)
                             binding.editTextCalStart.setText(dateFormatter.format(startDate!!.time))
                         }, startDate!![Calendar.HOUR_OF_DAY], startDate!![Calendar.MINUTE], false
                     ).show()
-                }, startDate!![Calendar.YEAR], startDate!![Calendar.MONTH], startDate!![Calendar.DATE]
+                },
+                startDate!![Calendar.YEAR],
+                startDate!![Calendar.MONTH],
+                startDate!![Calendar.DATE]
             ).show()
         }
 
@@ -161,7 +186,8 @@ class CreateFragment : Fragment() {
                 requireContext(),
                 { _, year, monthOfYear, dayOfMonth ->
                     endDate!!.set(year, monthOfYear, dayOfMonth)
-                    TimePickerDialog(context,
+                    TimePickerDialog(
+                        context,
                         { _, hourOfDay, minute ->
                             endDate!!.set(Calendar.HOUR_OF_DAY, hourOfDay)
                             endDate!!.set(Calendar.MINUTE, minute)
@@ -196,41 +222,46 @@ class CreateFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-         if (resultCode == RESULT_OK) {
-                pdfUri = data?.data!!
-                val uri: Uri = data.data!!
-                val uriString: String = uri.toString()
-                if (uriString.startsWith("content://")) {
-                    var myCursor: Cursor? = null
-                    try {
-                        // Setting the PDF to the TextView
-                        myCursor = requireContext().contentResolver.query(uri, null, null, null, null)
-                        if (myCursor != null && myCursor.moveToFirst()) {
-                            pdfName = myCursor.getString(myCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                            binding.textViewDocumentName.text = "Documento: $pdfName"
-                        }
-                    } finally {
-                        myCursor?.close()
+        if (resultCode == RESULT_OK) {
+            pdfUri = data?.data!!
+            val uri: Uri = data.data!!
+            val uriString: String = uri.toString()
+            if (uriString.startsWith("content://")) {
+                var myCursor: Cursor? = null
+                try {
+                    // Setting the PDF to the TextView
+                    myCursor = requireContext().contentResolver.query(uri, null, null, null, null)
+                    if (myCursor != null && myCursor.moveToFirst()) {
+                        pdfName =
+                            myCursor.getString(myCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                        binding.textViewDocumentName.text = "Documento: $pdfName"
                     }
+                } finally {
+                    myCursor?.close()
                 }
             }
+        }
     }
 
-    private fun uploadDocument() : Boolean {
+    private fun uploadDocument(): Boolean {
         val dialog = ProgressDialog(context)
         dialog.setMessage("Subiendo documento")
         dialog.show()
 
         val storageRef = Firebase.storage.reference
-        val reference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$pdfName")
+        val reference = storageRef.child("PDFs/" + (activity as HomeActivity).email!! + "/$pdfName")
         val uploadTask: UploadTask = reference.putFile(pdfUri)
 
-        uploadTask.addOnFailureListener {  exception ->
-            Toast.makeText(context, "Ocurrio un error al subir el documento $exception", Toast.LENGTH_SHORT).show()
+        uploadTask.addOnFailureListener { exception ->
+            Toast.makeText(
+                context,
+                "Ocurrio un error al subir el documento $exception",
+                Toast.LENGTH_SHORT
+            ).show()
             dialog.dismiss()
         }.addOnSuccessListener {
-                Toast.makeText(context, "Documento subido exitosamente", Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
+            Toast.makeText(context, "Documento subido exitosamente", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
 
         return true
@@ -238,6 +269,18 @@ class CreateFragment : Fragment() {
 
     private fun generateQRCode() {
         if (contentIsNotNull()) {
+            if (!connected && binding.qrTypeSpinner.selectedItemPosition == 1) {
+                Toast.makeText(
+                    context,
+                    "El codigo no se registro en la base de datos porque no hay internet",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else if (!connected) {
+                Toast.makeText(context, "Error, no hay conexion a internet", Toast.LENGTH_SHORT)
+                    .show()
+                return
+            }
+
             val qrHashMap: MutableMap<String, Any> = HashMap()
 
             // Generamos un ID
@@ -250,7 +293,11 @@ class CreateFragment : Fragment() {
                     val uploadResult = uploadDocument()
 
                     if (!uploadResult) {
-                        Toast.makeText(context, "Ocurrio un error al subir el documento", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Ocurrio un error al subir el documento",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         return
                     }
                 }
@@ -260,12 +307,14 @@ class CreateFragment : Fragment() {
             } else {
                 codeUUID += "E"
                 qrHashMap[codeUUID] = getEncodedContent()
-                qrImageBitmap = (activity as HomeActivity).CrearImagenQR(qrHashMap[codeUUID] as String)
+                qrImageBitmap =
+                    (activity as HomeActivity).CrearImagenQR(qrHashMap[codeUUID] as String)
             }
 
             binding.imageViewQRCode.setImageBitmap(qrImageBitmap)
 
-            firebaseFirestore.collection("Codigos").document((activity as HomeActivity).email!!)[qrHashMap] = SetOptions.merge()
+            firebaseFirestore.collection("Codigos")
+                .document((activity as HomeActivity).email!!)[qrHashMap] = SetOptions.merge()
 
             Toast.makeText(context, "Codigo creado", Toast.LENGTH_SHORT).show()
         } else {
@@ -277,7 +326,20 @@ class CreateFragment : Fragment() {
         }
     }
 
-    private fun contentIsNotNull() : Boolean {
+    private fun checkInternetConnection() {
+        val connectedRef = Firebase.database.getReference(".info/connected")
+        connectedRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                connected = snapshot.getValue(Boolean::class.java) ?: false
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        })
+    }
+
+    private fun contentIsNotNull(): Boolean {
         return when (binding.qrContentSpinner.selectedItem) {
             "Texto" -> binding.editTextText.text!!.isNotEmpty()
             "Email" -> binding.editTextEmail.text!!.isNotEmpty() && binding.editTextEmailSubject.text!!.isNotEmpty() && binding.editTextEmailMessage.text!!.isNotEmpty()
@@ -290,35 +352,35 @@ class CreateFragment : Fragment() {
         }
     }
 
-    private fun getEncodedContent() : String {
+    private fun getEncodedContent(): String {
         var string = encodeQRContent()
         string = URLEncoder.encode(string, "UTF-8");
         string.replace(" ", "%20");
         return string
     }
 
-    private fun encodeQRContent() : String {
+    private fun encodeQRContent(): String {
         return when (binding.qrContentSpinner.selectedItem) {
             "Texto" -> binding.editTextText.text.toString()
-            "Email" ->  {
-                "mailto:"+binding.editTextEmail.text.toString()+
-                        "?subject="+ binding.editTextEmailSubject.text.toString()+
+            "Email" -> {
+                "mailto:" + binding.editTextEmail.text.toString() +
+                        "?subject=" + binding.editTextEmailSubject.text.toString() +
                         "&body=" + binding.editTextEmailMessage.text.toString()
             }
-            "Telefono" -> "tel:"+binding.editTextPhone.text.toString()
+            "Telefono" -> "tel:" + binding.editTextPhone.text.toString()
             "SMS" -> {
                 "smsto:" + binding.editTextSMSPhone.text.toString() +
-                        ":"+ binding.editTextSMSMessage.text.toString()
+                        ":" + binding.editTextSMSMessage.text.toString()
             }
             "Wifi" -> {
-                "WIFI:S:"+binding.editTextWifiSSID.text.toString()+
-                        ";T:WPA;P:"+
-                        binding.editTextWifiPassword.text.toString()+";;"
+                "WIFI:S:" + binding.editTextWifiSSID.text.toString() +
+                        ";T:WPA;P:" +
+                        binding.editTextWifiPassword.text.toString() + ";;"
             }
             "Evento" -> {
                 val dateFormatter = SimpleDateFormat("yyyyMMdd'T'HHmmss")
 
-                "BEGIN:VEVENT\nSUMMARY:"+ binding.editTextCalTitle.text.toString()+
+                "BEGIN:VEVENT\nSUMMARY:" + binding.editTextCalTitle.text.toString() +
                         "\nLOCATION:" + binding.editTextCalLocation.text.toString() +
                         "\nDTSTART:" + dateFormatter.format(startDate!!.time) +
                         "\nDTEND:" + dateFormatter.format(endDate!!.time) +

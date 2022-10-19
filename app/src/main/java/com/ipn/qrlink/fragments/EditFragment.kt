@@ -25,6 +25,10 @@ import android.widget.Toast
 import androidx.core.net.MailTo
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
@@ -52,6 +56,8 @@ class EditFragment : Fragment() {
     private var endDate: Calendar? = null
 
     private lateinit var pdfName: String
+
+    private var connected = false
 
     private lateinit var newPdfUri: Uri
     private lateinit var newPdfName: String
@@ -336,6 +342,19 @@ class EditFragment : Fragment() {
             "PDF" -> ::newPdfName.isInitialized
             else -> false
         }
+    }
+
+    private fun checkInternetConnection() {
+        val connectedRef = Firebase.database.getReference(".info/connected")
+        connectedRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                connected = snapshot.getValue(Boolean::class.java) ?: false
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        })
     }
 
     @SuppressLint("Range")

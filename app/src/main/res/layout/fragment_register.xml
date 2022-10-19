@@ -58,35 +58,45 @@
                 android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout3"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:layout_below="@+id/frame"
+            android:layout_marginHorizontal="15dp"
+            android:hint="Repite tu contrasena"
+            android:padding="5dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextRepiteContrasena"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:ems="10"
+                android:importantForAutofill="no"
+                android:inputType="textPassword"
+                android:textSize="16sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <Button
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
             android:background="@color/transparent"
             android:textColor="@color/black"
             android:textStyle="bold"
-            android:text="Olvidaste tu contrasena?"
-            android:textSize="16sp"
-            android:layout_gravity="end"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:background="@color/transparent"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:text="Crea una cuenta"
+            android:text="Ya estas registrado?"
             android:textSize="16sp"
             android:layout_gravity="end"/>
 
-            <Button
-                android:id="@+id/buttonEntrar"
-                android:layout_width="match_parent"
-                android:layout_marginHorizontal="15dp"
-                android:textSize="16sp"
-                android:layout_gravity="center"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/blue"
-                android:layout_marginTop="10dp"
-                android:text="Entrar"
-                android:textColor="@color/white" />
+        <Button
+            android:id="@+id/buttonEntrar"
+            android:layout_width="match_parent"
+            android:layout_marginHorizontal="15dp"
+            android:textSize="16sp"
+            android:layout_gravity="center"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/blue"
+            android:text="Registrarse"
+            android:textColor="@color/white" />
     </LinearLayout>
 </LinearLayout>

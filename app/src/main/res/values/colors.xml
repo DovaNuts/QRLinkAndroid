@@ -5,4 +5,5 @@
     <color name="blue">#0074D9</color>
     <color name="blueTwo">#03A9F4</color>
     <color name="red">#E91E36</color>
+    <color name="transparent">#00FFFFFF</color>
 </resources>
