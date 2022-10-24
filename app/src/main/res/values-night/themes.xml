@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.QRLink" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/blue</item>
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
     </style>
 </resources>

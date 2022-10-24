@@ -1,92 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="top"
-    android:orientation="vertical">
+    tools:context=".activities.AuthActivity">
 
-    <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="300dp"
-        android:layout_height="250dp"
-        android:layout_gravity="center"
-        android:src="@drawable/qrlinklogo" />
-
-    <!--Login-->
-    <LinearLayout
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment_activity_auth"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textInputLayout1"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:layout_below="@+id/frame"
-            android:layout_marginHorizontal="15dp"
-            android:layout_marginTop="10dp"
-            android:hint="Email"
-            android:padding="5dp">
+        android:layout_height="match_parent"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_graph_auth" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextEmail"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:ems="10"
-                android:importantForAutofill="no"
-                android:inputType="textEmailAddress"
-                android:textSize="16sp" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textInputLayout2"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:layout_below="@+id/frame"
-            android:layout_marginHorizontal="15dp"
-            android:hint="Contrasena"
-            android:padding="5dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextContrasena"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:ems="10"
-                android:importantForAutofill="no"
-                android:inputType="textPassword"
-                android:textSize="16sp" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:background="@color/transparent"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:text="Olvidaste tu contrasena?"
-            android:textSize="16sp"
-            android:layout_gravity="end"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:background="@color/transparent"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:text="Crea una cuenta"
-            android:textSize="16sp"
-            android:layout_gravity="end"/>
-
-            <Button
-                android:id="@+id/buttonEntrar"
-                android:layout_width="match_parent"
-                android:layout_marginHorizontal="15dp"
-                android:textSize="16sp"
-                android:layout_gravity="center"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/blue"
-                android:layout_marginTop="10dp"
-                android:text="Entrar"
-                android:textColor="@color/white" />
-    </LinearLayout>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

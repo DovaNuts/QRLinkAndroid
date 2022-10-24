@@ -18,6 +18,9 @@
     <string name="title_qr">Mis QR</string>
     <string name="title_notifications">Acerca de</string>
 
+    <string name="already_text"><u>¿Ya tienes una cuenta?</u></string>
+    <string name="register_text"><u>¿No tienes una cuenta? Registrate</u></string>
+    <string name="forgot_text"><u>¿Olvidaste tu contraseña?</u></string>
     <string-array name="qrType">
         <item>Texto</item>
         <item>Email</item>

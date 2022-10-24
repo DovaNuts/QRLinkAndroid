@@ -344,19 +344,6 @@ class EditFragment : Fragment() {
         }
     }
 
-    private fun checkInternetConnection() {
-        val connectedRef = Firebase.database.getReference(".info/connected")
-        connectedRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                connected = snapshot.getValue(Boolean::class.java) ?: false
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-
-            }
-        })
-    }
-
     @SuppressLint("Range")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

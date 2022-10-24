@@ -326,19 +326,6 @@ class CreateFragment : Fragment() {
         }
     }
 
-    private fun checkInternetConnection() {
-        val connectedRef = Firebase.database.getReference(".info/connected")
-        connectedRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                connected = snapshot.getValue(Boolean::class.java) ?: false
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-
-            }
-        })
-    }
-
     private fun contentIsNotNull(): Boolean {
         return when (binding.qrContentSpinner.selectedItem) {
             "Texto" -> binding.editTextText.text!!.isNotEmpty()

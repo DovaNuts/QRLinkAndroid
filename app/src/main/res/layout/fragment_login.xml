@@ -3,9 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:gravity="top"
     android:orientation="vertical"
-    tools:context=".fragments.RegisterFragment">
+    tools:context=".fragments.LoginFragment">
 
     <ImageView
         android:id="@+id/imageView2"
@@ -61,44 +60,40 @@
                 android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textInputLayout3"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:layout_below="@+id/frame"
-            android:layout_marginHorizontal="15dp"
-            android:hint="Repite tu contrasena"
-            android:padding="5dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextRepiteContrasena"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:ems="10"
-                android:importantForAutofill="no"
-                android:inputType="textPassword"
-                android:textSize="16sp" />
-        </com.google.android.material.textfield.TextInputLayout>
-
         <Button
-            android:id="@+id/buttonReturn"
+            android:id="@+id/buttonRecover"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_gravity="end"
             android:background="@color/transparent"
-            android:text="@string/already_text"
+            android:text="@string/forgot_text"
             android:textColor="@color/black" />
 
         <Button
-            android:id="@+id/buttonRegister"
+            android:id="@+id/buttonEntrar"
             android:layout_width="match_parent"
             android:layout_marginHorizontal="15dp"
             android:textSize="16sp"
             android:layout_gravity="center"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/blue"
-            android:text="Registrarse"
+            android:layout_marginTop="10dp"
+            android:text="Entrar"
             android:textColor="@color/white" />
     </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="50dp">
+
+        <Button
+            android:id="@+id/buttonRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@color/transparent"
+            android:text="@string/register_text"
+            android:textColor="@color/black" />
+    </RelativeLayout>
 </LinearLayout>
