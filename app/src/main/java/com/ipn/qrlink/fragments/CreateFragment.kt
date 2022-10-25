@@ -24,6 +24,7 @@ import android.widget.AdapterView
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
@@ -36,6 +37,7 @@ import com.google.firebase.storage.ktx.storage
 import com.ipn.qrlink.activities.HomeActivity
 import com.ipn.qrlink.activities.PDFActivity
 import com.ipn.qrlink.databinding.FragmentCreateBinding
+import com.ipn.qrlink.utility.Utility
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -56,13 +58,15 @@ class CreateFragment : Fragment() {
     private lateinit var pdfUri: Uri
     private lateinit var pdfName: String
 
-    private var connected = false
-
     // Referencia a la base de datos firestore
     var firebaseFirestore = FirebaseFirestore.getInstance()
 
     // Variable para guardar la imagen en que se genera a partir del ID del codigo QR para escanear
     var qrImageBitmap: Bitmap? = null
+
+    private var userEmail: String = ""
+
+    private var utility = Utility()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,6 +79,8 @@ class CreateFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+         userEmail = FirebaseAuth.getInstance().currentUser!!.email!!
 
         var lastSelectedQRContentView: View = binding.textInputLayout
         var currentSelectedQRContentView: View = binding.textInputLayout
@@ -249,7 +255,7 @@ class CreateFragment : Fragment() {
         dialog.show()
 
         val storageRef = Firebase.storage.reference
-        val reference = storageRef.child("PDFs/" + (activity as HomeActivity).email!! + "/$pdfName")
+        val reference = storageRef.child("PDFs/" + userEmail + "/$pdfName")
         val uploadTask: UploadTask = reference.putFile(pdfUri)
 
         uploadTask.addOnFailureListener { exception ->
@@ -261,6 +267,7 @@ class CreateFragment : Fragment() {
             dialog.dismiss()
         }.addOnSuccessListener {
             Toast.makeText(context, "Documento subido exitosamente", Toast.LENGTH_SHORT).show()
+            utility.downloadDocument(pdfName,userEmail, requireContext())
             dialog.dismiss()
         }
 
@@ -269,16 +276,12 @@ class CreateFragment : Fragment() {
 
     private fun generateQRCode() {
         if (contentIsNotNull()) {
-            if (!connected && binding.qrTypeSpinner.selectedItemPosition == 1) {
+            if (binding.qrTypeSpinner.selectedItemPosition == 1) {
                 Toast.makeText(
                     context,
                     "El codigo no se registro en la base de datos porque no hay internet",
                     Toast.LENGTH_SHORT
                 ).show()
-            } else if (!connected) {
-                Toast.makeText(context, "Error, no hay conexion a internet", Toast.LENGTH_SHORT)
-                    .show()
-                return
             }
 
             val qrHashMap: MutableMap<String, Any> = HashMap()
@@ -314,7 +317,7 @@ class CreateFragment : Fragment() {
             binding.imageViewQRCode.setImageBitmap(qrImageBitmap)
 
             firebaseFirestore.collection("Codigos")
-                .document((activity as HomeActivity).email!!)[qrHashMap] = SetOptions.merge()
+                .document(userEmail)[qrHashMap] = SetOptions.merge()
 
             Toast.makeText(context, "Codigo creado", Toast.LENGTH_SHORT).show()
         } else {

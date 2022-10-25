@@ -4,11 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.provider.CalendarContract
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +20,7 @@ import android.widget.Toast
 import androidx.core.net.MailTo
 import androidx.fragment.app.Fragment
 import com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
@@ -25,6 +29,7 @@ import com.google.zxing.integration.android.IntentResult
 import com.ipn.qrlink.activities.HomeActivity
 import com.ipn.qrlink.activities.PDFActivity
 import com.ipn.qrlink.databinding.FragmentScanBinding
+import com.ipn.qrlink.utility.Utility
 import java.net.URLDecoder
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -38,6 +43,8 @@ class ScanFragment : Fragment() {
 
     // Referencia a la base de datos firestore
     var firebaseFirestore = FirebaseFirestore.getInstance()
+
+    private var utility = Utility()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -81,8 +88,29 @@ class ScanFragment : Fragment() {
             .initiateScan()
     }
 
+    private fun isOnline(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (connectivityManager != null) {
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            if (capabilities != null) {
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+                    return true
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+                    return true
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+                    return true
+                }
+            }
+        }
+        return false
+    }
 
-    private fun decodeAndLoadQRContent(encodedContent: String) : String {
+    private fun decodeAndLoadQRContent(encodedContent: String, userEmail: String) : String {
         val content = URLDecoder.decode(encodedContent)
         when {
             content.startsWith("mailto:", ignoreCase = true) -> {
@@ -178,10 +206,18 @@ class ScanFragment : Fragment() {
                 return "Evento\nNombre: $title\nUbicacion: $location\nFecha de inicio: $start\nFinal: $end"
             }
             content.endsWith(".pdf",ignoreCase = true) -> {
-                val intent = Intent(requireContext(), PDFActivity::class.java)
-                val documentURI = "hola:PDFs/"+(activity as HomeActivity).email!!+"/$content"
-                intent.putExtra("pdf", documentURI)
-                startActivity(intent)
+                if (isOnline(requireContext())) {
+                    val intent = Intent(requireContext(), PDFActivity::class.java)
+                    val documentURI = "hola:PDFs/$userEmail/$content"
+                    utility.downloadDocument(content,userEmail,requireContext())
+                    intent.putExtra("pdf", documentURI)
+                    startActivity(intent)
+                } else {
+                    val intent = Intent(requireContext(), PDFActivity::class.java)
+                    val documentURI = "offline:"+utility.getDocumentURI(content,userEmail,requireContext())
+                    intent.putExtra("pdf", documentURI)
+                    startActivity(intent)
+                }
 
                 return content
             }
@@ -217,8 +253,7 @@ class ScanFragment : Fragment() {
                     // deberia contener el ID
                     if (correos[i][dataResult] != null) {
                         // Cuando encontramos el codigo mostramos el contenido
-                        binding.textViewResult.text =
-                            decodeAndLoadQRContent(correos[i][dataResult].toString())
+                        binding.textViewResult.text = decodeAndLoadQRContent(correos[i][dataResult].toString(),correos[i].id)
                         encontrado = true
                         break
                     }
@@ -226,7 +261,7 @@ class ScanFragment : Fragment() {
 
                 // Si no encontramos el codigo significa que escaneamos un codigo "normal" asi que mostramos
                 // directamente la informacion escaneada
-                if (!encontrado) binding.textViewResult.text = decodeAndLoadQRContent(dataResult)
+                if (!encontrado) binding.textViewResult.text = decodeAndLoadQRContent(dataResult, "")
             }
     }
 

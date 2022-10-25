@@ -399,20 +399,6 @@
             android:textAllCaps="false"
             android:textSize="16sp"
             android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/buttonPreview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="5dp"
-            android:layout_marginHorizontal="20dp"
-            android:backgroundTint="@color/blue"
-            android:text="Previsualizar"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
-
         <Button
             android:id="@+id/buttonUploadFile"
             android:layout_width="match_parent"
@@ -422,6 +408,18 @@
             android:layout_marginHorizontal="20dp"
             android:backgroundTint="@color/blue"
             android:text="Elegir documento"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+        <Button
+            android:id="@+id/buttonPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="5dp"
+            android:layout_marginHorizontal="20dp"
+            android:backgroundTint="@color/blue"
+            android:text="Previsualizar"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="16sp" />

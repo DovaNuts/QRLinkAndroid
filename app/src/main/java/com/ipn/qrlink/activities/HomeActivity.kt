@@ -22,6 +22,10 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
@@ -40,9 +44,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     var navController: NavController? = null
 
-    // Referencia al email con el que ingreso el usuario
-    // Nos servira a la hora de guardar los QR generados
-    var email: String? = null
+    var connected = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,9 +53,6 @@ class HomeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         WindowCompat.setDecorFitsSystemWindows(window, true)
-
-        // Obtenemos el email de la pantalla anterior de ingreso
-        email = intent.extras!!.getString("email")
 
         val navView = findViewById<BottomNavigationView>(R.id.nav_view)
 

@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.ipn.qrlink.R
 import com.ipn.qrlink.activities.HomeActivity
@@ -24,6 +25,8 @@ class QRListFragment : Fragment() {
     // Referencia a la base de datos firestore
     var firebaseFirestore = FirebaseFirestore.getInstance()
 
+    private var userEmail: String = ""
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -38,6 +41,8 @@ class QRListFragment : Fragment() {
 
         val activity: HomeActivity? = activity as HomeActivity?
 
+        userEmail = FirebaseAuth.getInstance().currentUser!!.email!!
+
         // Referencia al elemento de lista de la interfaz
         val listView = binding.listaQR
 
@@ -45,7 +50,7 @@ class QRListFragment : Fragment() {
         val listaQR = ArrayList<qrCode>()
 
         // Entramos a la coleccion Codigos y de ahi al documento con el nombre del correo del usuario actual
-        firebaseFirestore.collection("Codigos").document(activity!!.email!!).get()
+        firebaseFirestore.collection("Codigos").document(userEmail).get()
             .addOnCompleteListener { task ->
                 // Obtenemos el documento de los codigos registrados por el usuario
                 val documento = task.result
@@ -82,7 +87,7 @@ class QRListFragment : Fragment() {
                         bundle.putString("contenido", codigoQR.content)
 
                         // Cargamos la pantalla
-                        activity.CargarFragmento(R.id.navigation_edit, bundle)
+                        activity!!.CargarFragmento(R.id.navigation_edit, bundle)
                     }
             }
     }

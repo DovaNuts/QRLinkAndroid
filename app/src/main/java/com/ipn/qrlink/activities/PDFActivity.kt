@@ -8,6 +8,7 @@ import com.github.barteksc.pdfviewer.PDFView
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import com.ipn.qrlink.databinding.ActivityPdfBinding
+import java.io.File
 
 class PDFActivity : AppCompatActivity() {
 
@@ -36,6 +37,13 @@ class PDFActivity : AppCompatActivity() {
             }.addOnFailureListener {
                 // Handle any errors
             }
+        } else if (pdf?.startsWith("offline:") == true) {
+            val data = pdf.split(":")
+            val pdfUri = Uri.fromFile(File(data[1]))
+            val inputData = contentResolver.openInputStream(pdfUri)?.readBytes()
+
+            pdfView = binding.pdfView
+            pdfView.fromBytes(inputData).load()
         } else {
             val pdfUri = Uri.parse(pdf)
             val inputData = contentResolver.openInputStream(pdfUri)?.readBytes()

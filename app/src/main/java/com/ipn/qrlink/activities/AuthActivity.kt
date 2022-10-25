@@ -27,7 +27,6 @@ class AuthActivity : AppCompatActivity() {
         // Revisamos si el usuario ya se ha logeado en este dispositivo antes, en caso posivito continuamos
         if (FirebaseAuth.getInstance().currentUser != null) {
             val intent = Intent(this@AuthActivity, HomeActivity::class.java)
-            intent.putExtra("email", FirebaseAuth.getInstance().currentUser?.email)
 
             // Agregamos las "banderas" para limpiar el stack y asi no poder regresar a esta vista
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)

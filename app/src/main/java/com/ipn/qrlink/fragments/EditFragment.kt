@@ -6,17 +6,21 @@ import android.app.DatePickerDialog
 import android.app.ProgressDialog
 import android.app.TimePickerDialog
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +29,8 @@ import android.widget.Toast
 import androidx.core.net.MailTo
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
@@ -37,6 +43,8 @@ import com.google.firebase.storage.ktx.storage
 import com.ipn.qrlink.activities.HomeActivity
 import com.ipn.qrlink.activities.PDFActivity
 import com.ipn.qrlink.databinding.FragmentEditBinding
+import com.ipn.qrlink.utility.Utility
+import io.grpc.okhttp.internal.Util
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -57,13 +65,11 @@ class EditFragment : Fragment() {
 
     private lateinit var pdfName: String
 
-    private var connected = false
-
     private lateinit var newPdfUri: Uri
     private lateinit var newPdfName: String
 
     // Referencia a la base de datos firestore
-    var firebaseFirestore = FirebaseFirestore.getInstance()
+    private var firebaseFirestore = FirebaseFirestore.getInstance()
 
     // ID del codigo qr
     var qrUUID: String? = null
@@ -77,6 +83,10 @@ class EditFragment : Fragment() {
     var lastSelectedQRContentView:View? = null
     var currentSelectedQRContentView:View? = null
 
+    private var userEmail: String = ""
+
+    private var utility = Utility()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -86,8 +96,14 @@ class EditFragment : Fragment() {
         return binding.root
     }
 
+    fun deleteDoc() {
+        utility.deleteDocument(pdfName,userEmail,requireContext())
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        userEmail = FirebaseAuth.getInstance().currentUser!!.email!!
 
         // Obtenemos los argumentos de la pantalla anterior, en este caso el ID y contenido del QR seleccionado
         val bundle = arguments
@@ -120,14 +136,16 @@ class EditFragment : Fragment() {
 
             if (qrContent!!.endsWith(".pdf",ignoreCase = true)) {
                 val storageRef = Firebase.storage.reference
-                val reference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$pdfName")
+                val reference = storageRef.child("PDFs/$userEmail/$pdfName")
 
                 reference.delete().addOnCompleteListener {
-                    firebaseFirestore.collection("Codigos").document((activity as HomeActivity).email!!).update(qrHashMap)
+                    firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
+                    utility.deleteDocument(pdfName,userEmail,requireContext())
                     onBackPressed()
                 }
             } else {
-                firebaseFirestore.collection("Codigos").document((activity as HomeActivity).email!!).update(qrHashMap)
+                firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
+                utility.deleteDocument(pdfName,userEmail,requireContext())
                 onBackPressed()
             }
         }
@@ -148,10 +166,69 @@ class EditFragment : Fragment() {
                     dialog.show()
 
                     val storageRef = Firebase.storage.reference
-                    val reference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$pdfName")
 
-                    reference.delete().addOnSuccessListener {
-                        val newReference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$newPdfName")
+
+                    if (::pdfName.isInitialized) {
+                        val reference = storageRef.child("PDFs/$userEmail/$pdfName")
+                        if (pdfName != "") {
+                            reference.delete().addOnSuccessListener {
+                                val newReference = storageRef.child("PDFs/$userEmail/$newPdfName")
+                                val uploadTask: UploadTask = newReference.putFile(newPdfUri)
+                                deleteDoc()
+
+                                uploadTask.addOnFailureListener {  exception ->
+                                    Toast.makeText(context, "Ocurrio un error al subir el documento $exception", Toast.LENGTH_SHORT).show()
+                                    dialog.dismiss()
+                                }.addOnSuccessListener {
+                                    Toast.makeText(context, "Documento actualizado exitosamente", Toast.LENGTH_SHORT).show()
+                                    pdfName = newPdfName
+                                    deleteDoc()
+                                    // Actualizamos el contenido del UUID
+                                    qrHashMap[qrUUID!!] = getEncodedContent()
+                                    qrHashMap[qrUUID!!]
+
+                                    firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
+
+                                    Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
+                                    dialog.dismiss()
+                                }
+                            }.addOnFailureListener {
+                                dialog.dismiss()
+                                Toast.makeText(context, "Ocurrio un error al actualizar el documento", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            val newReference = storageRef.child("PDFs/$userEmail/$newPdfName")
+                            val uploadTask: UploadTask = newReference.putFile(newPdfUri)
+
+                            uploadTask.addOnFailureListener { exception ->
+                                Toast.makeText(
+                                    context,
+                                    "Ocurrio un error al subir el documento $exception",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                dialog.dismiss()
+                            }.addOnSuccessListener {
+                                Toast.makeText(
+                                    context,
+                                    "Documento actualizado exitosamente",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                pdfName = newPdfName
+                                deleteDoc()
+                                // Actualizamos el contenido del UUID
+                                qrHashMap[qrUUID!!] = getEncodedContent()
+                                qrHashMap[qrUUID!!]
+
+                                firebaseFirestore.collection("Codigos").document(userEmail)
+                                    .update(qrHashMap)
+
+                                Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT)
+                                    .show()
+                                dialog.dismiss()
+                            }
+                        }
+                    } else {
+                        val newReference = storageRef.child("PDFs/$userEmail/$newPdfName")
                         val uploadTask: UploadTask = newReference.putFile(newPdfUri)
 
                         uploadTask.addOnFailureListener {  exception ->
@@ -160,32 +237,33 @@ class EditFragment : Fragment() {
                         }.addOnSuccessListener {
                             Toast.makeText(context, "Documento actualizado exitosamente", Toast.LENGTH_SHORT).show()
                             pdfName = newPdfName
+                            deleteDoc()
                             // Actualizamos el contenido del UUID
                             qrHashMap[qrUUID!!] = getEncodedContent()
                             qrHashMap[qrUUID!!]
 
-                            firebaseFirestore.collection("Codigos").document((activity as HomeActivity).email!!).update(qrHashMap)
+                            firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
 
                             Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
                             dialog.dismiss()
                         }
-                    }.addOnFailureListener {
-                        dialog.dismiss()
-                        Toast.makeText(context, "Ocurrio un error al actualizar el documento", Toast.LENGTH_SHORT).show()
                     }
+
+
                 } else {
                     // Actualizamos el contenido del UUID
                     qrHashMap[qrUUID!!] = getEncodedContent()
 
                     if (::pdfName.isInitialized) {
                         val storageRef = Firebase.storage.reference
-                        val reference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$pdfName")
-
+                        val reference = storageRef.child("PDFs/$userEmail/$pdfName")
+                        deleteDoc()
+                        binding.textViewDocumentName.text = "Documento:"
                         reference.delete()
                         pdfName = ""
                     }
 
-                    firebaseFirestore.collection("Codigos").document((activity as HomeActivity).email!!).update(qrHashMap)
+                    firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
 
                     Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
                 }
@@ -245,67 +323,19 @@ class EditFragment : Fragment() {
 
         binding.buttonPreview.setOnClickListener {
             if (contentIsNotNull()) {
-                val intent = Intent(requireContext(), PDFActivity::class.java)
-                val documentURI = "hola:PDFs/"+(activity as HomeActivity).email!!+"/$pdfName"
-                intent.putExtra("pdf", documentURI)
-                startActivity(intent)
-            } else Toast.makeText(context, "Primero sube un documento", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.buttonDownload.setOnClickListener {
-            val storageRef = Firebase.storage.reference
-            val reference = storageRef.child("PDFs/"+(activity as HomeActivity).email!!+"/$pdfName")
-
-            //  Variable para guardar el estado de si la imagen se guardo o no
-            val guardada: Boolean
-            val finalFile: File
-
-            // OutputStream para escribir/guardar la imagen
-            val writer: OutputStream?
-            try {
-                // Si el dispositivo es android 9 o superior
-                writer =  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && Build.VERSION.SDK_INT < 30) {
-                    val resolver = requireContext().contentResolver
-                    val contentValues = ContentValues()
-
-                    // Guardamos la imagen en el destino DCIM/QR, imagen de tipo .png con el nombre de "QR - " + las 5 primeras letras del QR
-                    contentValues.put(
-                        MediaStore.DownloadColumns.DISPLAY_NAME,
-                        pdfName
-                    )
-                    contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "document/pdf")
-                    contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, "Documents")
-
-                    // Insertamos la imagen en los archivos a escribir
-                    val documentUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                    finalFile = documentUri!!.toFile()
-                    resolver.openOutputStream(documentUri)
+                if (isOnline(requireContext())) {
+                    val intent = Intent(requireContext(), PDFActivity::class.java)
+                    val documentURI = "hola:PDFs/$userEmail/$pdfName"
+                    utility.downloadDocument(pdfName,userEmail,requireContext())
+                    intent.putExtra("pdf", documentURI)
+                    startActivity(intent)
                 } else {
-                    // El proceso a seguir es el mismo pero de diferente manera por la version de android
-                    val directorioDocumento = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS
-                    ).toString()
-                    val documento = File(directorioDocumento, pdfName)
-                    finalFile = documento
-                    FileOutputStream(documento)
+                    val intent = Intent(requireContext(), PDFActivity::class.java)
+                    val documentURI = "offline:"+utility.getDocumentURI(pdfName,userEmail,requireContext())
+                    intent.putExtra("pdf", documentURI)
+                    startActivity(intent)
                 }
-
-                reference.getFile(finalFile).addOnSuccessListener {
-                    Toast.makeText(context, "Documento descargado", Toast.LENGTH_SHORT).show()
-                }.addOnFailureListener {
-                    Toast.makeText(context, "Ocurrio un error al descargar el documento", Toast.LENGTH_SHORT).show()
-                }
-
-                // Al finalizar limpiamos y cerramos el stream
-                writer!!.flush()
-                writer.close()
-
-                // Informamos que se guardo la imagen correctamente
-                Toast.makeText(context, "Imagen guardada", Toast.LENGTH_SHORT).show()
-            } catch (e: IOException) {
-                // Si tenemos algun error lo mostramos
-                Toast.makeText(context, "Error al guardar: $e", Toast.LENGTH_SHORT).show()
-            }
+            } else Toast.makeText(context, "Primero sube un documento", Toast.LENGTH_SHORT).show()
         }
 
         binding.buttonUploadFile.setOnClickListener {
@@ -316,6 +346,28 @@ class EditFragment : Fragment() {
             galleryIntent.type = "application/pdf"
             startActivityForResult(galleryIntent, 1)
         }
+    }
+
+    private fun isOnline(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (connectivityManager != null) {
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            if (capabilities != null) {
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+                    return true
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+                    return true
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     private fun contentIsNotNull() : Boolean {
