@@ -524,7 +524,7 @@ class EditFragment : Fragment() {
                         "\nDTEND:" + dateFormatter.format(endDate!!.time) +
                         "\nEND:VEVENT"
             }
-            "PDF" -> newPdfName
+            "PDF" -> pdfName
             else -> "ERROR"
         }
     }

@@ -103,8 +103,7 @@ class Utility {
     }
     fun downloadDocument(pdfName: String, userEmail: String,context: Context) {
         val storageRef = Firebase.storage.reference
-        val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser
-        val reference = storageRef.child("PDFs/"+ user!!.email!!+"/$pdfName")
+        val reference = storageRef.child("PDFs/"+ userEmail+"/$pdfName")
 
         //  Variable para guardar el estado de si la imagen se guardo o no
         val guardada: Boolean

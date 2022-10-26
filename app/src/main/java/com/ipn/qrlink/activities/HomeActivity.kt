@@ -1,42 +1,45 @@
 package com.ipn.qrlink.activities
 
 import android.Manifest
-import android.R.attr.bitmap
+import android.Manifest.permission
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.ipn.qrlink.R
 import com.ipn.qrlink.databinding.ActivityHomeBinding
+import com.ipn.qrlink.utility.Utility
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.net.URLDecoder
 
 
 class HomeActivity : AppCompatActivity() {
@@ -44,7 +47,9 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     var navController: NavController? = null
 
-    var connected = false
+    private val firebase = FirebaseFirestore.getInstance()
+
+    private var utility = Utility()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,8 +65,6 @@ class HomeActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_home) as NavHostFragment?
         navController = navHostFragment!!.navController
         setupWithNavController(navView, navController!!)
-
-        hasWriteStoragePermission()
     }
 
     // Metodo para cargar nuevos fragmentos
@@ -149,37 +152,5 @@ class HomeActivity : AppCompatActivity() {
 
         // Regresamos el conjunto de bits para crear la iamgen
         return codificadorQR.createBitmap(matriz)
-    }
-
-    private fun hasWriteStoragePermission(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val androidElevenPermission =
-                registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-                    with(binding.root) {
-                        when {
-                            shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE) -> {
-                            }
-                        }
-                    }
-                }
-
-            androidElevenPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return true
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    101
-                )
-                return false
-            }
-        }
-        return true
     }
 }

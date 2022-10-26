@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
-import com.ipn.qrlink.activities.MainActivity
+import com.ipn.qrlink.activities.AuthActivity
 import com.ipn.qrlink.databinding.FragmentAboutBinding
 
 class AboutFragment : Fragment() {
@@ -32,7 +32,7 @@ class AboutFragment : Fragment() {
 
         binding.buttonCerrarSesion.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
-            val intent = Intent(context, MainActivity::class.java)
+            val intent = Intent(context, AuthActivity::class.java)
             // Agregamos las "banderas" para limpiar el stack y asi no poder regresar a esta vista
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
