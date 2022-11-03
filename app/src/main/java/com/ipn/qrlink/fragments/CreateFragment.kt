@@ -276,14 +276,6 @@ class CreateFragment : Fragment() {
 
     private fun generateQRCode() {
         if (contentIsNotNull()) {
-            if (binding.qrTypeSpinner.selectedItemPosition == 1) {
-                Toast.makeText(
-                    context,
-                    "El codigo no se registro en la base de datos porque no hay internet",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
             val qrHashMap: MutableMap<String, Any> = HashMap()
 
             // Generamos un ID

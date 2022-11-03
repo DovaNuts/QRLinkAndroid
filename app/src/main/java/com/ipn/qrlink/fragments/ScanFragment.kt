@@ -240,29 +240,34 @@ class ScanFragment : Fragment() {
     fun codigoEscaneado(dataResult: String) {
         // Cuando escaneamos un codigo necesitamos comprobar si esta registrado en la base de datos para esto
         // Cargamos todos los correos dentro de la coleccion Codigos
-        firebaseFirestore.collection("Codigos").get()
-            .addOnCompleteListener { task -> // Una vez cargados, los metemos en una lista
-                val correos = task.result.documents
 
-                // Variable para saber si encontramos el codigo
-                var encontrado = false
+        if(dataResult.length == 37 && dataResult.endsWith("D",ignoreCase = false)) {
+            firebaseFirestore.collection("Codigos").get()
+                .addOnCompleteListener { task -> // Una vez cargados, los metemos en una lista
+                    val correos = task.result.documents
 
-                // Para cada uno de los correos revisamos si contienen el codigo QR
-                for (i in correos.indices) {
-                    // Comprobamos si el correo contiene el codigo escaneado, si escaneamos un codigo registado entonces
-                    // deberia contener el ID
-                    if (correos[i][dataResult] != null) {
-                        // Cuando encontramos el codigo mostramos el contenido
-                        binding.textViewResult.text = decodeAndLoadQRContent(correos[i][dataResult].toString(),correos[i].id)
-                        encontrado = true
-                        break
+                    // Variable para saber si encontramos el codigo
+                    var encontrado = false
+
+                    // Para cada uno de los correos revisamos si contienen el codigo QR
+                    for (i in correos.indices) {
+                        // Comprobamos si el correo contiene el codigo escaneado, si escaneamos un codigo registado entonces
+                        // deberia contener el ID
+                        if (correos[i][dataResult] != null) {
+                            // Cuando encontramos el codigo mostramos el contenido
+                            binding.textViewResult.text = decodeAndLoadQRContent(correos[i][dataResult].toString(),correos[i].id)
+                            encontrado = true
+                            break
+                        }
                     }
-                }
 
-                // Si no encontramos el codigo significa que escaneamos un codigo "normal" asi que mostramos
-                // directamente la informacion escaneada
-                if (!encontrado) binding.textViewResult.text = decodeAndLoadQRContent(dataResult, "")
-            }
+                    // Si no encontramos el codigo significa que escaneamos un codigo "normal" asi que mostramos
+                    // directamente la informacion escaneada
+                    if (!encontrado) binding.textViewResult.text = decodeAndLoadQRContent(dataResult, "")
+                }
+        } else {
+            binding.textViewResult.text = decodeAndLoadQRContent(dataResult, "")
+        }
     }
 
     override fun onDestroyView() {
