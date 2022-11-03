@@ -35,13 +35,12 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
         return position.toLong()
     }
 
-    @NonNull
     override fun getView(
         position: Int,
-        @Nullable convertView: View?,
-        @NonNull parent: ViewGroup?
+        convertView: View?,
+        parent: ViewGroup?
     ): View? {
-        val rowView = LayoutInflater.from(context).inflate(R.layout.item_qr, parent, false)
+        val rowView = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_qr, parent, false)
 
         val qrCode = getItem(position) as qrCode
 
