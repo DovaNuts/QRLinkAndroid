@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical"
     tools:context=".fragments.EditFragment">
 
     <ImageView
         android:id="@+id/imageViewQR"
-        android:layout_width="300dp"
+        android:layout_width="match_parent"
         android:layout_height="200dp"
+        android:layout_gravity="center"
         android:src="@drawable/qrlinklogo" />
 
     <TextView
@@ -26,8 +27,8 @@
     <Button
         android:id="@+id/buttonSaveImage"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="100dp"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="10dp"
         android:backgroundTint="@color/blue"
         android:text="Guardar imagen"
         android:textColor="@color/white"
@@ -78,13 +79,17 @@
     <!--Texto-->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:layout_marginHorizontal="15dp"
         android:hint="Contenido"
         android:padding="5dp"
-        android:visibility="visible">
+        android:visibility="visible"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusTopStart="12dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextText"
@@ -94,6 +99,7 @@
             android:gravity="top"
             android:importantForAutofill="no"
             android:inputType="textImeMultiLine|textMultiLine"
+            android:textColorHint="#8D6E63"
             android:textSize="16sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -109,11 +115,15 @@
         <!--Correos-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputEmail"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Correo(s)"
-            android:padding="5dp">
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextEmail"
@@ -128,11 +138,15 @@
         <!--Asunto-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputEmailSubject"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Asunto"
-            android:padding="5dp">
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextEmailSubject"
@@ -147,11 +161,15 @@
         <!--Mensaje-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputEmailMessage"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="120dp"
+            android:layout_height="100dp"
             android:hint="Mensaje"
-            android:padding="5dp">
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextEmailMessage"
@@ -169,13 +187,17 @@
     <!--Telefono-->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputPhone"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
         android:hint="Número de teléfono"
         android:padding="5dp"
-        android:visibility="gone">
+        android:visibility="gone"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusTopStart="12dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextPhone"
@@ -199,11 +221,15 @@
         <!--Telefono-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputSMSPhone"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Número de teléfono"
-            android:padding="5dp">
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextSMSPhone"
@@ -218,11 +244,15 @@
         <!--Mensaje-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputSMSMessage"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="120dp"
             android:hint="Mensaje"
-            android:padding="5dp">
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextSMSMessage"
@@ -249,11 +279,15 @@
         <!--SSID-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputWifiSSID"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="SSID"
-            android:padding="5dp">
+            android:hint="Nombre de la red"
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextWifiSSID"
@@ -268,11 +302,15 @@
         <!--Contrasena-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputWifiPassword"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Contrasena"
-            android:padding="5dp">
+            android:hint="Contraseña"
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextWifiPassword"
@@ -281,7 +319,7 @@
                 android:ems="10"
                 android:importantForAutofill="no"
                 android:inputType="textVisiblePassword"
-                android:textSize="14sp" />
+                android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
     </LinearLayout>
@@ -298,11 +336,15 @@
         <!--Titulo-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputCalTitle"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Titulo"
-            android:padding="5dp">
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextCalTitle"
@@ -317,11 +359,15 @@
         <!--Location-->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputCalLocation"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:hint="Ubicacion"
-            android:padding="5dp">
+            android:layout_height="100dp"
+            android:hint="Ubicación"
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextCalLocation"
@@ -342,47 +388,55 @@
             <!--Inicio-->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/textInputCalStart"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="50"
                 android:hint="Inicio"
-                android:padding="5dp">
+                android:padding="5dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextCalStart"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:clickable="true"
                     android:ems="10"
+                    android:focusable="false"
                     android:importantForAutofill="no"
                     android:inputType="datetime"
-                    android:textSize="16sp"
-                    android:focusable="false"
-                    android:clickable="true"
-                    android:maxLines="1"/>
+                    android:maxLines="1"
+                    android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!--Fin-->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/textInputCalEnd"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="50"
                 android:hint="Fin"
-                android:padding="5dp">
+                android:padding="5dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextCalEnd"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:clickable="true"
                     android:ems="10"
+                    android:focusable="false"
                     android:importantForAutofill="no"
                     android:inputType="datetime"
-                    android:textSize="16sp"
-                    android:focusable="false"
-                    android:clickable="true"
-                    android:maxLines="1"/>
+                    android:maxLines="1"
+                    android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
     </LinearLayout>
@@ -407,25 +461,27 @@
             android:textAllCaps="false"
             android:textSize="16sp"
             android:textStyle="bold" />
+
         <Button
             android:id="@+id/buttonUploadFile"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_gravity="center"
-            android:layout_marginTop="5dp"
             android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="5dp"
             android:backgroundTint="@color/blue"
             android:text="Elegir documento"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="16sp" />
+
         <Button
             android:id="@+id/buttonPreview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_gravity="center"
-            android:layout_marginTop="5dp"
             android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="5dp"
             android:backgroundTint="@color/blue"
             android:text="Previsualizar"
             android:textAllCaps="false"
@@ -433,33 +489,25 @@
             android:textSize="16sp" />
     </LinearLayout>
 
-    <LinearLayout
+    <Button
+        android:id="@+id/buttonUpdate"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="5dp"
-        android:layout_weight="1"
-        android:orientation="horizontal">
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="10dp"
+        android:backgroundTint="@color/blue"
+        android:text="Actualizar"
+        android:textColor="@color/white"
+        android:textSize="16sp" />
 
-        <Button
-            android:id="@+id/buttonDelete"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="20dp"
-            android:layout_weight="50"
-            android:backgroundTint="@color/red"
-            android:text="Eliminar"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
+    <Button
+        android:id="@+id/buttonDelete"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="10dp"
+        android:backgroundTint="@color/red"
+        android:text="Eliminar"
+        android:textColor="@color/white"
+        android:textSize="16sp" />
 
-        <Button
-            android:id="@+id/buttonUpdate"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="50"
-            android:backgroundTint="@color/blue"
-            android:text="Actualizar"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
-    </LinearLayout>
+
 </LinearLayout>

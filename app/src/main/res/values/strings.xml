@@ -9,7 +9,7 @@
 
     <string name="title_activity_auth">Login</string>
     <string name="title_activity_home">Home</string>
-    <string name="title_activity_pdf">Previsualizacion</string>
+    <string name="title_activity_pdf">Previsualización</string>
     <string name="title_activity_main">QRLink</string>
 
     <string name="title_activity_main2">Home</string>
@@ -19,20 +19,21 @@
     <string name="title_notifications">Acerca de</string>
 
     <string name="already_text"><u>¿Ya tienes una cuenta?</u></string>
-    <string name="register_text"><u>¿No tienes una cuenta? Registrate</u></string>
+    <string name="register_text"><font color="#FF000000">¿No tienes una cuenta? </font><u><font color="#0074D9">Registrate</font></u></string>
+    <string name="register_text2"><u>¿No tienes una cuenta? Registrate</u></string>
     <string name="forgot_text"><u>¿Olvidaste tu contraseña?</u></string>
     <string-array name="qrType">
         <item>Texto</item>
-        <item>Email</item>
-        <item>Telefono</item>
-        <item>SMS</item>
-        <item>Wifi</item>
+        <item>Correo electrónico</item>
+        <item>Numero telefónico</item>
+        <item>Mensaje de texto</item>
+        <item>Red Wi-Fi</item>
         <item>Evento</item>
         <item>PDF</item>
     </string-array>
 
     <string-array name="qrContent">
-        <item>Dinamico</item>
-        <item>Estatico</item>
+        <item>Dinámico</item>
+        <item>Estático</item>
     </string-array>
 </resources>

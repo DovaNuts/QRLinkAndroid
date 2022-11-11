@@ -37,14 +37,14 @@ class ForgotFragment : Fragment() {
         }
 
         // Evento al clickear el boton "Registrarse"
-        binding.buttonRecover.setOnClickListener (View.OnClickListener{
+        binding.buttonRecover.setOnClickListener(View.OnClickListener {
             val email = binding.editTextEmail.text.toString()
 
             // Comprobamos que el email y contrasena no esten vacios, si estan vacios mostramos una alerta y regresamos
             if (email == "") {
                 Toast.makeText(
                     requireContext(),
-                    "Introduce un email registrado para continuar.",
+                    "Introduce tu correo electrónico registrado para continuar.",
                     Toast.LENGTH_SHORT
                 ).show()
                 return@OnClickListener
@@ -55,17 +55,25 @@ class ForgotFragment : Fragment() {
                 .addOnCompleteListener { task ->
                     // Si existen cargamos la siguiente pantalla y enviamos como extra el correo del usuario
                     if (task.isSuccessful) {
-                        Toast.makeText(requireContext(), "Correo enviado, revisa tu email", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            requireContext(),
+                            "Enlace de reinicio enviado, revisa tu correo electrónico.",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
                         onBackPressed()
                     } else
-                        Toast.makeText(requireContext(), "Este email no esta registrado", Toast.LENGTH_SHORT)
+                        Toast.makeText(
+                            requireContext(),
+                            "Este correo electrónico no está registrado.",
+                            Toast.LENGTH_SHORT
+                        )
                             .show()
                 }
         })
     }
 
     fun onBackPressed() {
-        parentFragmentManager.popBackStackImmediate();
+        parentFragmentManager.popBackStackImmediate()
     }
 }

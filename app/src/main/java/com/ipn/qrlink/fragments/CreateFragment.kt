@@ -1,13 +1,10 @@
 package com.ipn.qrlink.fragments
 
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.app.DatePickerDialog
 import android.app.ProgressDialog
 import android.app.TimePickerDialog
-import android.content.ContentResolver
 import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
@@ -16,32 +13,24 @@ import android.icu.util.Calendar
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.UploadTask
 import com.google.firebase.storage.ktx.storage
+import com.ipn.qrlink.R
 import com.ipn.qrlink.activities.HomeActivity
 import com.ipn.qrlink.activities.PDFActivity
 import com.ipn.qrlink.databinding.FragmentCreateBinding
 import com.ipn.qrlink.utility.Utility
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStreamReader
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.*
 
@@ -68,6 +57,9 @@ class CreateFragment : Fragment() {
 
     private var utility = Utility()
 
+    var qrContentTypeList = arrayOf<String>()
+    var qrTypeList = arrayOf<String>()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -80,13 +72,16 @@ class CreateFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-         userEmail = FirebaseAuth.getInstance().currentUser!!.email!!
+        userEmail = FirebaseAuth.getInstance().currentUser!!.email!!
 
         var lastSelectedQRContentView: View = binding.textInputLayout
         var currentSelectedQRContentView: View = binding.textInputLayout
 
         var lastSelectedPostion: Int = 0
         var currentSelectedPosition: Int = 0
+
+        qrContentTypeList = resources.getStringArray(R.array.qrType)
+        qrTypeList = resources.getStringArray(R.array.qrContent)
 
         val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm")
 
@@ -120,7 +115,7 @@ class CreateFragment : Fragment() {
                                 binding.qrContentSpinner.setSelection(lastSelectedPostion)
                                 Toast.makeText(
                                     context,
-                                    "PDF solo esta disponible como codigo dinamico",
+                                    "PDF solo está disponible como código dinámico.",
                                     Toast.LENGTH_LONG
                                 ).show()
                             } else currentSelectedQRContentView = binding.pdfHolder
@@ -147,7 +142,7 @@ class CreateFragment : Fragment() {
 
                     Toast.makeText(
                         context,
-                        "PDF solo esta disponible como codigo dinamico",
+                        "PDF solo está disponible como código dinámico.",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -220,7 +215,7 @@ class CreateFragment : Fragment() {
 
                 intent.putExtra("pdf", pdfUri.toString())
                 startActivity(intent)
-            } else Toast.makeText(context, "Primero sube un documento", Toast.LENGTH_SHORT).show()
+            } else Toast.makeText(context, "Sube un documento para continuar.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -261,13 +256,13 @@ class CreateFragment : Fragment() {
         uploadTask.addOnFailureListener { exception ->
             Toast.makeText(
                 context,
-                "Ocurrio un error al subir el documento $exception",
+                "Error: No se pudo cargar el documento $exception",
                 Toast.LENGTH_SHORT
             ).show()
             dialog.dismiss()
         }.addOnSuccessListener {
-            Toast.makeText(context, "Documento subido exitosamente", Toast.LENGTH_SHORT).show()
-            utility.downloadDocument(pdfName,userEmail, requireContext())
+            Toast.makeText(context, "Documento cargado con éxito.", Toast.LENGTH_SHORT).show()
+            utility.downloadDocument(pdfName, userEmail, requireContext())
             dialog.dismiss()
         }
 
@@ -281,7 +276,7 @@ class CreateFragment : Fragment() {
             // Generamos un ID
             var codeUUID = UUID.randomUUID().toString()
 
-            if (binding.qrTypeSpinner.selectedItem == "Dinamico") {
+            if (binding.qrTypeSpinner.selectedItem == qrTypeList[0]) {
                 codeUUID += "D"
 
                 if (binding.qrContentSpinner.selectedItemPosition == 6) {
@@ -290,7 +285,7 @@ class CreateFragment : Fragment() {
                     if (!uploadResult) {
                         Toast.makeText(
                             context,
-                            "Ocurrio un error al subir el documento",
+                            "Error: No se pudo cargar el documento.",
                             Toast.LENGTH_SHORT
                         ).show()
                         return
@@ -301,9 +296,8 @@ class CreateFragment : Fragment() {
                 qrImageBitmap = (activity as HomeActivity).CrearImagenQR(codeUUID)
             } else {
                 codeUUID += "E"
-                qrHashMap[codeUUID] = getEncodedContent()
-                qrImageBitmap =
-                    (activity as HomeActivity).CrearImagenQR(qrHashMap[codeUUID] as String)
+                qrHashMap[codeUUID] =  getEncodedContent()
+                qrImageBitmap = (activity as HomeActivity).CrearImagenQR(URLDecoder.decode(qrHashMap[codeUUID] as String))
             }
 
             binding.imageViewQRCode.setImageBitmap(qrImageBitmap)
@@ -311,11 +305,11 @@ class CreateFragment : Fragment() {
             firebaseFirestore.collection("Codigos")
                 .document(userEmail)[qrHashMap] = SetOptions.merge()
 
-            Toast.makeText(context, "Codigo creado", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Código creado.", Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(
                 binding.root.context,
-                "Introduzca algunos datos para generar el código QR",
+                "Introduce los datos para generar el código QR.",
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -323,43 +317,44 @@ class CreateFragment : Fragment() {
 
     private fun contentIsNotNull(): Boolean {
         return when (binding.qrContentSpinner.selectedItem) {
-            "Texto" -> binding.editTextText.text!!.isNotEmpty()
-            "Email" -> binding.editTextEmail.text!!.isNotEmpty() && binding.editTextEmailSubject.text!!.isNotEmpty() && binding.editTextEmailMessage.text!!.isNotEmpty()
-            "Telefono" -> binding.editTextPhone.text!!.isNotEmpty()
-            "SMS" -> binding.editTextSMSPhone.text!!.isNotEmpty() && binding.editTextSMSMessage.text!!.isNotEmpty()
-            "Wifi" -> binding.editTextWifiSSID.text!!.isNotEmpty() && binding.editTextWifiPassword.text!!.isNotEmpty()
-            "Evento" -> binding.editTextCalTitle.text!!.isNotEmpty() && binding.editTextCalLocation.text!!.isNotEmpty() && binding.editTextCalStart.text!!.isNotEmpty() && binding.editTextCalEnd.text!!.isNotEmpty()
-            "PDF" -> ::pdfName.isInitialized
+            qrContentTypeList[0] -> binding.editTextText.text!!.isNotEmpty()
+            qrContentTypeList[1] -> binding.editTextEmail.text!!.isNotEmpty() && binding.editTextEmailSubject.text!!.isNotEmpty() && binding.editTextEmailMessage.text!!.isNotEmpty()
+            qrContentTypeList[2] -> binding.editTextPhone.text!!.isNotEmpty()
+            qrContentTypeList[3] -> binding.editTextSMSPhone.text!!.isNotEmpty() && binding.editTextSMSMessage.text!!.isNotEmpty()
+            qrContentTypeList[4] -> binding.editTextWifiSSID.text!!.isNotEmpty() && binding.editTextWifiPassword.text!!.isNotEmpty()
+            qrContentTypeList[5] -> binding.editTextCalTitle.text!!.isNotEmpty() && binding.editTextCalLocation.text!!.isNotEmpty() && binding.editTextCalStart.text!!.isNotEmpty() && binding.editTextCalEnd.text!!.isNotEmpty()
+            qrContentTypeList[6] -> ::pdfName.isInitialized
             else -> false
         }
     }
 
     private fun getEncodedContent(): String {
         var string = encodeQRContent()
-        string = URLEncoder.encode(string, "UTF-8");
-        string.replace(" ", "%20");
+        string = URLEncoder.encode(string, "UTF-8")
+        string.replace(" ", "%20")
         return string
     }
 
     private fun encodeQRContent(): String {
+
         return when (binding.qrContentSpinner.selectedItem) {
-            "Texto" -> binding.editTextText.text.toString()
-            "Email" -> {
+            qrContentTypeList[0] -> binding.editTextText.text.toString()
+            qrContentTypeList[1] -> {
                 "mailto:" + binding.editTextEmail.text.toString() +
                         "?subject=" + binding.editTextEmailSubject.text.toString() +
                         "&body=" + binding.editTextEmailMessage.text.toString()
             }
-            "Telefono" -> "tel:" + binding.editTextPhone.text.toString()
-            "SMS" -> {
+            qrContentTypeList[2] -> "tel:" + binding.editTextPhone.text.toString()
+            qrContentTypeList[3] -> {
                 "smsto:" + binding.editTextSMSPhone.text.toString() +
                         ":" + binding.editTextSMSMessage.text.toString()
             }
-            "Wifi" -> {
+            qrContentTypeList[4] -> {
                 "WIFI:S:" + binding.editTextWifiSSID.text.toString() +
                         ";T:WPA;P:" +
                         binding.editTextWifiPassword.text.toString() + ";;"
             }
-            "Evento" -> {
+            qrContentTypeList[5] -> {
                 val dateFormatter = SimpleDateFormat("yyyyMMdd'T'HHmmss")
 
                 "BEGIN:VEVENT\nSUMMARY:" + binding.editTextCalTitle.text.toString() +
@@ -368,7 +363,7 @@ class CreateFragment : Fragment() {
                         "\nDTEND:" + dateFormatter.format(endDate!!.time) +
                         "\nEND:VEVENT"
             }
-            "PDF" -> pdfName
+            qrContentTypeList[6] -> pdfName
             else -> "ERROR"
         }
     }
@@ -376,7 +371,7 @@ class CreateFragment : Fragment() {
     private fun saveImage() {
         if (qrImageBitmap == null) Toast.makeText(
             binding.root.context,
-            "Genera un codigo QR primero",
+            "Crea un código QR primero.",
             Toast.LENGTH_SHORT
         ).show() else (activity as HomeActivity).GuardarQR(getEncodedContent(), qrImageBitmap!!)
     }

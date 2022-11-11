@@ -9,7 +9,6 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -22,7 +21,6 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.ipn.qrlink.databinding.ActivityAuthBinding
 import com.ipn.qrlink.utility.Utility
 import java.net.URLDecoder
-
 
 class AuthActivity : AppCompatActivity() {
 
@@ -51,7 +49,7 @@ class AuthActivity : AppCompatActivity() {
 
         // Aplicamos los ajustes
         firebase.firestoreSettings = firebaseSettings
-        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true)
 
         if (isOnline(this) && hasWriteStoragePermission()) {
             Thread(Runnable {
@@ -60,17 +58,20 @@ class AuthActivity : AppCompatActivity() {
                     val correos = task.result.documents
 
                     for (i in correos.indices) {
-                        firebase.collection("Codigos").document(correos[i].id).get().addOnCompleteListener { taska ->
-                            val codigos = taska.result.data
-                            if (codigos != null) {
-                                for (codigo in codigos.entries) {
-                                    if (codigo.value.toString().endsWith(".pdf",ignoreCase = true)) {
-                                        val content = URLDecoder.decode(codigo.value.toString())
-                                        utility.downloadDocument(content,correos[i].id,this)
+                        firebase.collection("Codigos").document(correos[i].id).get()
+                            .addOnCompleteListener { taska ->
+                                val codigos = taska.result.data
+                                if (codigos != null) {
+                                    for (codigo in codigos.entries) {
+                                        if (codigo.value.toString()
+                                                .endsWith(".pdf", ignoreCase = true)
+                                        ) {
+                                            val content = URLDecoder.decode(codigo.value.toString())
+                                            utility.downloadDocument(content, correos[i].id, this)
+                                        }
                                     }
                                 }
                             }
-                        }
                     }
                 }
             }).start()
@@ -111,8 +112,7 @@ class AuthActivity : AppCompatActivity() {
                 androidElevenPermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 false
             }
-        }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             return true
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return if (ActivityCompat.checkSelfPermission(

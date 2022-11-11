@@ -11,32 +11,47 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="20dp"
         android:fontFamily="sans-serif-light"
         android:text="Resultado"
         android:textSize="34sp" />
+
+    <ImageView
+        android:id="@+id/imageViewScan"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginVertical="20dp"/>
+
+    <TextView
+        android:id="@+id/textViewResultType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="15dp"
+        android:text=""
+        android:textColor="#919191"
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/textViewResult"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="20dp"
         android:layout_weight="50"
-        android:textSize="24sp"
-        android:text="" />
+        android:text=""
+        android:textSize="24sp" />
 
     <Button
         android:id="@+id/buttonScan"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="50dp"
-        android:layout_marginBottom="150dp"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="70dp"
         android:layout_weight="1"
         android:backgroundTint="@color/blue"
         android:text="Escanear de nuevo"
-        android:layout_marginTop="10dp"
-        android:textSize="16sp"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:textSize="16sp" />
 
 </LinearLayout>

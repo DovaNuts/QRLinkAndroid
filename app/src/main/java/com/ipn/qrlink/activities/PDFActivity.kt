@@ -3,7 +3,6 @@ package com.ipn.qrlink.activities
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContentProviderCompat.requireContext
 import com.github.barteksc.pdfviewer.PDFView
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
@@ -13,7 +12,7 @@ import java.io.File
 class PDFActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPdfBinding
-    private lateinit var pdfView : PDFView
+    private lateinit var pdfView: PDFView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

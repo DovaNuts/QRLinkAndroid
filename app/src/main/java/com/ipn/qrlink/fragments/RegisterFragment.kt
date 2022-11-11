@@ -40,7 +40,7 @@ class RegisterFragment : Fragment() {
         }
 
         // Evento al clickear el boton "Registrarse"
-        binding.buttonRegister.setOnClickListener (View.OnClickListener{
+        binding.buttonRegister.setOnClickListener(View.OnClickListener {
             val email = binding.editTextEmail.text.toString()
             val contrasena = binding.editTextContrasena.text.toString()
             val contrasenados = binding.editTextRepiteContrasena.text.toString()
@@ -67,19 +67,27 @@ class RegisterFragment : Fragment() {
                 .addOnCompleteListener { task ->
                     // Si existen cargamos la siguiente pantalla y enviamos como extra el correo del usuario
                     if (task.isSuccessful) {
-                        Toast.makeText((activity as AuthActivity),"Cuenta creada, revisa tu email", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            (activity as AuthActivity),
+                            "Enlace de verificacion enviado, revisa tu correo electrónico.",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
                         val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser
                         user!!.sendEmailVerification()
                         onBackPressed()
                     } else
-                        Toast.makeText((activity as AuthActivity), "Email ya registrado", Toast.LENGTH_SHORT)
+                        Toast.makeText(
+                            (activity as AuthActivity),
+                            "Correo electrónico ya registrado.",
+                            Toast.LENGTH_SHORT
+                        )
                             .show()
                 }
         })
     }
 
     fun onBackPressed() {
-        parentFragmentManager.popBackStackImmediate();
+        parentFragmentManager.popBackStackImmediate()
     }
 }

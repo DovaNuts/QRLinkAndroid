@@ -11,7 +11,6 @@ import androidx.fragment.app.FragmentTransaction
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.ipn.qrlink.R
-import com.ipn.qrlink.activities.AuthActivity
 import com.ipn.qrlink.activities.HomeActivity
 import com.ipn.qrlink.databinding.FragmentLoginBinding
 
@@ -44,7 +43,7 @@ class LoginFragment : Fragment() {
             if (email == "" || contrasena == "") {
                 Toast.makeText(
                     requireContext(),
-                    "Introduce un email y una contraseña registrados para continuar.",
+                    "Introduce tu correo electrónico  y contraseña registrados para continuar.",
                     Toast.LENGTH_SHORT
                 ).show()
                 return@OnClickListener
@@ -67,12 +66,13 @@ class LoginFragment : Fragment() {
                         } else {
                             Toast.makeText(
                                 requireContext(),
-                                "Verifica tu email para acceder.",
-                                Toast.LENGTH_SHORT).show()
+                                "Verifica tu cuenta para acceder, revisa tu correo electrónico.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     } else Toast.makeText(
                         requireContext(),
-                        "Email y/o contraseña incorrectos",
+                        "Correo electrónico y/o contraseña incorrectos.",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -81,7 +81,7 @@ class LoginFragment : Fragment() {
         binding.buttonRecover.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
                 .replace(R.id.nav_host_fragment_activity_auth, ForgotFragment::class.java, null)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_MATCH_ACTIVITY_OPEN)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .addToBackStack(null)
                 .commit()
         }
@@ -89,7 +89,7 @@ class LoginFragment : Fragment() {
         binding.buttonRegister.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
                 .replace(R.id.nav_host_fragment_activity_auth, RegisterFragment::class.java, null)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_MATCH_ACTIVITY_OPEN)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .addToBackStack(null)
                 .commit()
         }

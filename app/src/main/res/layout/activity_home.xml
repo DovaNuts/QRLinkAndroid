@@ -7,9 +7,9 @@
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
-        style="@style/Widget.Material3.BottomNavigationView"
+        style="@style/Widget.Material3.BottomNavigationView.ActiveIndicator"
         android:layout_width="0dp"
-        android:layout_height="70dp"
+        android:layout_height="65dp"
         android:background="?android:attr/windowBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

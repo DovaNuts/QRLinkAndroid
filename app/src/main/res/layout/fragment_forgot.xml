@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:gravity="top"
     android:orientation="vertical"
     tools:context=".fragments.ForgotFragment">
 
     <ImageView
         android:id="@+id/imageView2"
-        android:paddingTop="5dp"
         android:layout_width="300dp"
         android:layout_height="250dp"
         android:layout_gravity="center"
+        android:paddingTop="5dp"
         android:src="@drawable/qrlinklogo" />
 
     <!--Login-->
@@ -20,16 +21,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayout1"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:layout_below="@+id/frame"
             android:layout_marginHorizontal="15dp"
             android:layout_marginTop="10dp"
-            android:hint="Email registrado"
-            android:padding="5dp">
+            android:hint="Correo electrónico"
+            android:padding="5dp"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextEmail"
@@ -48,17 +54,17 @@
             android:layout_gravity="end"
             android:background="@color/transparent"
             android:text="@string/already_text"
-            android:textColor="@color/black" />
+            android:textColor="@color/blue" />
 
         <Button
             android:id="@+id/buttonRecover"
             android:layout_width="match_parent"
-            android:layout_marginHorizontal="15dp"
-            android:textSize="16sp"
+            android:layout_height="60dp"
             android:layout_gravity="center"
-            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="15dp"
             android:backgroundTint="@color/blue"
             android:text="Recuperar contraseña"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            android:textSize="16sp" />
     </LinearLayout>
 </LinearLayout>

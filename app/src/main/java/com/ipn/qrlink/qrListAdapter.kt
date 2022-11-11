@@ -4,9 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
-import android.net.wifi.WifiConfiguration
-import android.net.wifi.WifiManager
-import android.provider.CalendarContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,10 +11,7 @@ import android.webkit.URLUtil
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import androidx.core.net.MailTo
-import org.w3c.dom.Text
 import java.net.URLDecoder
 
 class qrListAdapter(private val context: Context, private val dataSource: ArrayList<qrCode>) :
@@ -40,7 +34,8 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
         convertView: View?,
         parent: ViewGroup?
     ): View? {
-        val rowView = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_qr, parent, false)
+        val rowView =
+            convertView ?: LayoutInflater.from(context).inflate(R.layout.item_qr, parent, false)
 
         val qrCode = getItem(position) as qrCode
 
@@ -60,7 +55,7 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
         return rowView
     }
 
-    private fun decodeQRContent(encodedContent: String) : String {
+    private fun decodeQRContent(encodedContent: String): String {
         val content = URLDecoder.decode(encodedContent)
         when {
             content.startsWith("mailto:", ignoreCase = true) -> {
@@ -69,27 +64,27 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
                 val intent = Intent(Intent.ACTION_SENDTO)
                 intent.data = Uri.parse("mailto:") // Solo las apps de email soportan esto
 
-                return "Para: " + decodedMail.to + "\nAsunto: "+decodedMail.subject+"\nMensaje: "+decodedMail.body
+                return "Para: " + decodedMail.to + "\nAsunto: " + decodedMail.subject + "\nMensaje: " + decodedMail.body
             }
             content.startsWith("tel:", ignoreCase = true) -> {
                 val decodedPhone = content.split(":")
                 val phoneNumber = decodedPhone[1]
 
-                return "Para: $phoneNumber"
+                return "Numero: $phoneNumber"
             }
             content.startsWith("smsto:", ignoreCase = true) -> {
                 val decodedMessage = content.split(":")
                 val phoneNumber = decodedMessage[1]
                 val messageContent = decodedMessage[2]
 
-                return "Para: $phoneNumber\nContenido: $messageContent"
+                return "Numero: $phoneNumber\nMensaje: $messageContent"
             }
             content.startsWith("WIFI:S:", ignoreCase = true) -> {
                 val decodedWIFI = content.split(":")
                 val ssid = decodedWIFI[2].split(";")[0]
                 val password = decodedWIFI[4].split(";")[0]
 
-                return "Nombre de red: $ssid\nContrasena: *******"
+                return "Red: $ssid\nContraseña: *******"
             }
             content.startsWith("BEGIN:VEVENT\nSUMMARY:", ignoreCase = true) -> {
                 val decodedEvent = content.split("\n")
@@ -98,10 +93,11 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
 
                 val title = decodedEvent[1].split(":")[1]
                 val location = decodedEvent[2].split(":")[1]
-                val start = dateFormatter.format(parseFormatter.parse(decodedEvent[3].split(":")[1]))
+                val start =
+                    dateFormatter.format(parseFormatter.parse(decodedEvent[3].split(":")[1]))
                 val end = dateFormatter.format(parseFormatter.parse(decodedEvent[4].split(":")[1]))
 
-                return "Nombre: $title\nUbicacion: $location\nFecha de inicio: $start\nFinal: $end"
+                return "Titulo: $title\nUbicación: $location\nFecha de inicio: $start\nFinal: $end"
             }
             else -> {
                 return content
@@ -109,36 +105,36 @@ class qrListAdapter(private val context: Context, private val dataSource: ArrayL
         }
     }
 
-    private fun getQRContentType(encodedContent: String) : String {
+    private fun getQRContentType(encodedContent: String): String {
         val content = URLDecoder.decode(encodedContent)
         return when {
-            content.startsWith("mailto:", ignoreCase = true) -> "Correo eletronico"
-            content.startsWith("tel:", ignoreCase = true) -> "Llamada"
+            content.startsWith("mailto:", ignoreCase = true) -> "Correo eletrónico"
+            content.startsWith("tel:", ignoreCase = true) -> "Numero telefónico"
             content.startsWith("smsto:", ignoreCase = true) -> "Mensaje de texto"
-            content.startsWith("WIFI:S:", ignoreCase = true) -> "Red Wifi"
+            content.startsWith("WIFI:S:", ignoreCase = true) -> "Red Wi-Fi"
             content.startsWith("BEGIN:VEVENT\nSUMMARY:", ignoreCase = true) -> "Evento"
-            content.endsWith(".pdf",ignoreCase = true) -> "PDF"
+            content.endsWith(".pdf", ignoreCase = true) -> "PDF"
             URLUtil.isValidUrl(content) -> "Sitio Web"
-            else -> "Contenido"
+            else -> "Texto"
         }
     }
 
-    private fun getQRContentImage(encodedContent: String) : Int {
+    private fun getQRContentImage(encodedContent: String): Int {
         val content = URLDecoder.decode(encodedContent)
-       return when  {
+        return when {
             content.startsWith("mailto:", ignoreCase = true) -> R.drawable.maillogo
             content.startsWith("tel:", ignoreCase = true) -> R.drawable.phonelogo
             content.startsWith("smsto:", ignoreCase = true) -> R.drawable.smslogo
             content.startsWith("WIFI:S:", ignoreCase = true) -> R.drawable.wifilogo
             content.startsWith("BEGIN:VEVENT\nSUMMARY:", ignoreCase = true) -> R.drawable.eventlogo
-           content.endsWith(".pdf",ignoreCase = true) -> R.drawable.pdflogo
+            content.endsWith(".pdf", ignoreCase = true) -> R.drawable.pdflogo
             URLUtil.isValidUrl(content) -> R.drawable.networklogo
             else -> R.drawable.textlogo
         }
     }
 
-    private fun getQRTypeImage(content: String) : Int {
-        return when  {
+    private fun getQRTypeImage(content: String): Int {
+        return when {
             content.endsWith("D", ignoreCase = true) -> R.drawable.dynamiclogo
             else -> R.drawable.staticlogo
         }

@@ -5,7 +5,6 @@ import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.ProgressDialog
 import android.app.TimePickerDialog
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
@@ -15,10 +14,7 @@ import android.icu.util.Calendar
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
@@ -27,31 +23,21 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.core.net.MailTo
-import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.UploadTask
 import com.google.firebase.storage.ktx.storage
+import com.ipn.qrlink.R
 import com.ipn.qrlink.activities.HomeActivity
 import com.ipn.qrlink.activities.PDFActivity
 import com.ipn.qrlink.databinding.FragmentEditBinding
 import com.ipn.qrlink.utility.Utility
-import io.grpc.okhttp.internal.Util
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
 import java.net.URLDecoder
 import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+
 
 class EditFragment : Fragment() {
     private var _binding: FragmentEditBinding? = null
@@ -80,10 +66,13 @@ class EditFragment : Fragment() {
     // Variable para guardar la imagen en que se genera a partir del ID del codigo QR para escanear
     var qrImageBitmap: Bitmap? = null
 
-    var lastSelectedQRContentView:View? = null
-    var currentSelectedQRContentView:View? = null
+    var lastSelectedQRContentView: View? = null
+    var currentSelectedQRContentView: View? = null
 
     private var userEmail: String = ""
+
+    private var qrContentTypeList = arrayOf<String>()
+    var qrTypeList = arrayOf<String>()
 
     private var utility = Utility()
 
@@ -97,7 +86,7 @@ class EditFragment : Fragment() {
     }
 
     fun deleteDoc() {
-        utility.deleteDocument(pdfName,userEmail,requireContext())
+        utility.deleteDocument(pdfName, userEmail, requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -113,6 +102,9 @@ class EditFragment : Fragment() {
 
         lastSelectedQRContentView = binding.textInputLayout
         currentSelectedQRContentView = binding.textInputLayout
+
+        qrContentTypeList = resources.getStringArray(R.array.qrType)
+        qrTypeList = resources.getStringArray(R.array.qrContent)
 
         decodeAndLoadQRContent(qrContent!!)
 
@@ -134,18 +126,21 @@ class EditFragment : Fragment() {
             val qrHashMap: MutableMap<String, Any> = HashMap()
             qrHashMap[qrUUID!!] = FieldValue.delete()
 
-            if (qrContent!!.endsWith(".pdf",ignoreCase = true)) {
+            if (qrContent!!.endsWith(".pdf", ignoreCase = true)) {
                 val storageRef = Firebase.storage.reference
                 val reference = storageRef.child("PDFs/$userEmail/$pdfName")
 
                 reference.delete().addOnCompleteListener {
                     firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
-                    utility.deleteDocument(pdfName,userEmail,requireContext())
+                    utility.deleteDocument(pdfName, userEmail, requireContext())
                     onBackPressed()
                 }
             } else {
                 firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
-                utility.deleteDocument(pdfName,userEmail,requireContext())
+
+                if (::pdfName.isInitialized)
+                    utility.deleteDocument(pdfName, userEmail, requireContext())
+
                 onBackPressed()
             }
         }
@@ -176,25 +171,39 @@ class EditFragment : Fragment() {
                                 val uploadTask: UploadTask = newReference.putFile(newPdfUri)
                                 deleteDoc()
 
-                                uploadTask.addOnFailureListener {  exception ->
-                                    Toast.makeText(context, "Ocurrio un error al subir el documento $exception", Toast.LENGTH_SHORT).show()
+                                uploadTask.addOnFailureListener { exception ->
+                                    Toast.makeText(
+                                        context,
+                                        "Error: No se pudo cargar el documento $exception",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     dialog.dismiss()
                                 }.addOnSuccessListener {
-                                    Toast.makeText(context, "Documento actualizado exitosamente", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Documento cargado con éxito.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     pdfName = newPdfName
                                     deleteDoc()
                                     // Actualizamos el contenido del UUID
                                     qrHashMap[qrUUID!!] = getEncodedContent()
                                     qrHashMap[qrUUID!!]
 
-                                    firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
+                                    firebaseFirestore.collection("Codigos").document(userEmail)
+                                        .update(qrHashMap)
 
-                                    Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Cambios guardados.", Toast.LENGTH_SHORT)
+                                        .show()
                                     dialog.dismiss()
                                 }
                             }.addOnFailureListener {
                                 dialog.dismiss()
-                                Toast.makeText(context, "Ocurrio un error al actualizar el documento", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Error: No se pudo cargar el documento.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         } else {
                             val newReference = storageRef.child("PDFs/$userEmail/$newPdfName")
@@ -203,14 +212,14 @@ class EditFragment : Fragment() {
                             uploadTask.addOnFailureListener { exception ->
                                 Toast.makeText(
                                     context,
-                                    "Ocurrio un error al subir el documento $exception",
+                                    "Error: No se pudo cargar el documento $exception",
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 dialog.dismiss()
                             }.addOnSuccessListener {
                                 Toast.makeText(
                                     context,
-                                    "Documento actualizado exitosamente",
+                                    "Documento cargado con éxito.",
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 pdfName = newPdfName
@@ -222,7 +231,7 @@ class EditFragment : Fragment() {
                                 firebaseFirestore.collection("Codigos").document(userEmail)
                                     .update(qrHashMap)
 
-                                Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT)
+                                Toast.makeText(context, "Cambios guardados.", Toast.LENGTH_SHORT)
                                     .show()
                                 dialog.dismiss()
                             }
@@ -231,20 +240,29 @@ class EditFragment : Fragment() {
                         val newReference = storageRef.child("PDFs/$userEmail/$newPdfName")
                         val uploadTask: UploadTask = newReference.putFile(newPdfUri)
 
-                        uploadTask.addOnFailureListener {  exception ->
-                            Toast.makeText(context, "Ocurrio un error al subir el documento $exception", Toast.LENGTH_SHORT).show()
+                        uploadTask.addOnFailureListener { exception ->
+                            Toast.makeText(
+                                context,
+                                "Error: No se pudo cargar el documento $exception",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             dialog.dismiss()
                         }.addOnSuccessListener {
-                            Toast.makeText(context, "Documento actualizado exitosamente", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Documento cargado con éxito.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             pdfName = newPdfName
                             deleteDoc()
                             // Actualizamos el contenido del UUID
                             qrHashMap[qrUUID!!] = getEncodedContent()
                             qrHashMap[qrUUID!!]
 
-                            firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
+                            firebaseFirestore.collection("Codigos").document(userEmail)
+                                .update(qrHashMap)
 
-                            Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Cambios guardados.", Toast.LENGTH_SHORT).show()
                             dialog.dismiss()
                         }
                     }
@@ -265,26 +283,32 @@ class EditFragment : Fragment() {
 
                     firebaseFirestore.collection("Codigos").document(userEmail).update(qrHashMap)
 
-                    Toast.makeText(context, "Cambios guardados", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Cambios guardados.", Toast.LENGTH_SHORT).show()
                 }
             } else {
                 Toast.makeText(
                     binding.root.context,
-                    "Introduzca algunos datos para actualizar el código QR",
+                    "Introduce los datos para actualizar el código QR.",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         }
 
         // Spinner tipo de contenido
-        binding.qrContentSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-            }
+        binding.qrContentSpinner.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                }
 
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                loadQRContentView(position)
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    loadQRContentView(position)
+                }
             }
-        }
 
         // Date picker para evento
         binding.editTextCalStart.setOnClickListener {
@@ -293,14 +317,18 @@ class EditFragment : Fragment() {
                 requireContext(),
                 { _, year, monthOfYear, dayOfMonth ->
                     startDate!!.set(year, monthOfYear, dayOfMonth)
-                    TimePickerDialog(context,
+                    TimePickerDialog(
+                        context,
                         { _, hourOfDay, minute ->
                             startDate!!.set(Calendar.HOUR_OF_DAY, hourOfDay)
                             startDate!!.set(Calendar.MINUTE, minute)
                             binding.editTextCalStart.setText(dateFormatter.format(startDate!!.time))
                         }, startDate!![Calendar.HOUR_OF_DAY], startDate!![Calendar.MINUTE], false
                     ).show()
-                }, startDate!![Calendar.YEAR], startDate!![Calendar.MONTH], startDate!![Calendar.DATE]
+                },
+                startDate!![Calendar.YEAR],
+                startDate!![Calendar.MONTH],
+                startDate!![Calendar.DATE]
             ).show()
         }
 
@@ -310,7 +338,8 @@ class EditFragment : Fragment() {
                 requireContext(),
                 { _, year, monthOfYear, dayOfMonth ->
                     endDate!!.set(year, monthOfYear, dayOfMonth)
-                    TimePickerDialog(context,
+                    TimePickerDialog(
+                        context,
                         { _, hourOfDay, minute ->
                             endDate!!.set(Calendar.HOUR_OF_DAY, hourOfDay)
                             endDate!!.set(Calendar.MINUTE, minute)
@@ -322,20 +351,27 @@ class EditFragment : Fragment() {
         }
 
         binding.buttonPreview.setOnClickListener {
-            if (contentIsNotNull()) {
+            if (updatedContentIsNotNull()) {
+                val intent = Intent(requireContext(), PDFActivity::class.java)
+                intent.putExtra("pdf", newPdfUri.toString())
+                startActivity(intent)
+            }
+            else if (contentIsNotNull()) {
                 if (isOnline(requireContext())) {
                     val intent = Intent(requireContext(), PDFActivity::class.java)
                     val documentURI = "hola:PDFs/$userEmail/$pdfName"
-                    utility.downloadDocument(pdfName,userEmail,requireContext())
+                    utility.downloadDocument(pdfName, userEmail, requireContext())
                     intent.putExtra("pdf", documentURI)
                     startActivity(intent)
                 } else {
                     val intent = Intent(requireContext(), PDFActivity::class.java)
-                    val documentURI = "offline:"+utility.getDocumentURI(pdfName,userEmail,requireContext())
+                    val documentURI =
+                        "offline:" + utility.getDocumentURI(pdfName, userEmail, requireContext())
                     intent.putExtra("pdf", documentURI)
                     startActivity(intent)
                 }
-            } else Toast.makeText(context, "Primero sube un documento", Toast.LENGTH_SHORT).show()
+            }
+            else Toast.makeText(context, "Sube un documento para continuar.", Toast.LENGTH_SHORT).show()
         }
 
         binding.buttonUploadFile.setOnClickListener {
@@ -370,28 +406,28 @@ class EditFragment : Fragment() {
         return false
     }
 
-    private fun contentIsNotNull() : Boolean {
+    private fun contentIsNotNull(): Boolean {
         return when (binding.qrContentSpinner.selectedItem) {
-            "Texto" -> binding.editTextText.text!!.isNotEmpty()
-            "Email" -> binding.editTextEmail.text!!.isNotEmpty() && binding.editTextEmailSubject.text!!.isNotEmpty() && binding.editTextEmailMessage.text!!.isNotEmpty()
-            "Telefono" -> binding.editTextPhone.text!!.isNotEmpty()
-            "SMS" -> binding.editTextSMSPhone.text!!.isNotEmpty() && binding.editTextSMSMessage.text!!.isNotEmpty()
-            "Wifi" -> binding.editTextWifiSSID.text!!.isNotEmpty() && binding.editTextWifiPassword.text!!.isNotEmpty()
-            "Evento" -> binding.editTextCalTitle.text!!.isNotEmpty() && binding.editTextCalLocation.text!!.isNotEmpty() && binding.editTextCalStart.text!!.isNotEmpty() && binding.editTextCalEnd.text!!.isNotEmpty()
-            "PDF" -> ::pdfName.isInitialized
+            qrContentTypeList[0] -> binding.editTextText.text!!.isNotEmpty()
+            qrContentTypeList[1] -> binding.editTextEmail.text!!.isNotEmpty() && binding.editTextEmailSubject.text!!.isNotEmpty() && binding.editTextEmailMessage.text!!.isNotEmpty()
+            qrContentTypeList[2] -> binding.editTextPhone.text!!.isNotEmpty()
+            qrContentTypeList[3] -> binding.editTextSMSPhone.text!!.isNotEmpty() && binding.editTextSMSMessage.text!!.isNotEmpty()
+            qrContentTypeList[4] -> binding.editTextWifiSSID.text!!.isNotEmpty() && binding.editTextWifiPassword.text!!.isNotEmpty()
+            qrContentTypeList[5] -> binding.editTextCalTitle.text!!.isNotEmpty() && binding.editTextCalLocation.text!!.isNotEmpty() && binding.editTextCalStart.text!!.isNotEmpty() && binding.editTextCalEnd.text!!.isNotEmpty()
+            qrContentTypeList[6] -> ::pdfName.isInitialized
             else -> false
         }
     }
 
-    private fun updatedContentIsNotNull() : Boolean {
+    private fun updatedContentIsNotNull(): Boolean {
         return when (binding.qrContentSpinner.selectedItem) {
-            "Texto" -> binding.editTextText.text!!.isNotEmpty()
-            "Email" -> binding.editTextEmail.text!!.isNotEmpty() && binding.editTextEmailSubject.text!!.isNotEmpty() && binding.editTextEmailMessage.text!!.isNotEmpty()
-            "Telefono" -> binding.editTextPhone.text!!.isNotEmpty()
-            "SMS" -> binding.editTextSMSPhone.text!!.isNotEmpty() && binding.editTextSMSMessage.text!!.isNotEmpty()
-            "Wifi" -> binding.editTextWifiSSID.text!!.isNotEmpty() && binding.editTextWifiPassword.text!!.isNotEmpty()
-            "Evento" -> binding.editTextCalTitle.text!!.isNotEmpty() && binding.editTextCalLocation.text!!.isNotEmpty() && binding.editTextCalStart.text!!.isNotEmpty() && binding.editTextCalEnd.text!!.isNotEmpty()
-            "PDF" -> ::newPdfName.isInitialized
+            qrContentTypeList[0] -> binding.editTextText.text!!.isNotEmpty()
+            qrContentTypeList[1] -> binding.editTextEmail.text!!.isNotEmpty() && binding.editTextEmailSubject.text!!.isNotEmpty() && binding.editTextEmailMessage.text!!.isNotEmpty()
+            qrContentTypeList[2] -> binding.editTextPhone.text!!.isNotEmpty()
+            qrContentTypeList[3] -> binding.editTextSMSPhone.text!!.isNotEmpty() && binding.editTextSMSMessage.text!!.isNotEmpty()
+            qrContentTypeList[4] -> binding.editTextWifiSSID.text!!.isNotEmpty() && binding.editTextWifiPassword.text!!.isNotEmpty()
+            qrContentTypeList[5] -> binding.editTextCalTitle.text!!.isNotEmpty() && binding.editTextCalLocation.text!!.isNotEmpty() && binding.editTextCalStart.text!!.isNotEmpty() && binding.editTextCalEnd.text!!.isNotEmpty()
+            qrContentTypeList[6] -> ::newPdfName.isInitialized
             else -> false
         }
     }
@@ -410,7 +446,8 @@ class EditFragment : Fragment() {
                     // Setting the PDF to the TextView
                     myCursor = requireContext().contentResolver.query(uri, null, null, null, null)
                     if (myCursor != null && myCursor.moveToFirst()) {
-                        newPdfName = myCursor.getString(myCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                        newPdfName =
+                            myCursor.getString(myCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
                         binding.textViewDocumentName.text = "Documento: $newPdfName"
                     }
                 } finally {
@@ -490,48 +527,49 @@ class EditFragment : Fragment() {
         binding.textInputCalEnd.isEnabled = false
     }
 
-    private fun getEncodedContent() : String {
+    private fun getEncodedContent(): String {
         var string = encodeQRContent()
-        string = URLEncoder.encode(string, "UTF-8");
-        string.replace(" ", "%20");
+        string = URLEncoder.encode(string, "UTF-8")
+        string.replace(" ", "%20")
         return string
     }
 
-    private fun encodeQRContent() : String {
+    private fun encodeQRContent(): String {
+
         return when (binding.qrContentSpinner.selectedItem) {
-            "Texto" -> binding.editTextText.text.toString()
-            "Email" ->  {
-                "mailto:"+binding.editTextEmail.text.toString()+
-                        "?subject="+ binding.editTextEmailSubject.text.toString()+
+            qrContentTypeList[0] -> binding.editTextText.text.toString()
+            qrContentTypeList[1] -> {
+                "mailto:" + binding.editTextEmail.text.toString() +
+                        "?subject=" + binding.editTextEmailSubject.text.toString() +
                         "&body=" + binding.editTextEmailMessage.text.toString()
             }
-            "Telefono" -> "tel:"+binding.editTextPhone.text.toString()
-            "SMS" -> {
+            qrContentTypeList[2] -> "tel:" + binding.editTextPhone.text.toString()
+            qrContentTypeList[3] -> {
                 "smsto:" + binding.editTextSMSPhone.text.toString() +
-                        ":"+ binding.editTextSMSMessage.text.toString()
+                        ":" + binding.editTextSMSMessage.text.toString()
             }
-            "Wifi" -> {
-                "WIFI:S:"+binding.editTextWifiSSID.text.toString()+
-                        ";T:WPA;P:"+
-                        binding.editTextWifiPassword.text.toString()+";;"
+            qrContentTypeList[4] -> {
+                "WIFI:S:" + binding.editTextWifiSSID.text.toString() +
+                        ";T:WPA;P:" +
+                        binding.editTextWifiPassword.text.toString() + ";;"
             }
-            "Evento" -> {
+            qrContentTypeList[5] -> {
                 val dateFormatter = SimpleDateFormat("yyyyMMdd'T'HHmmss")
 
-                "BEGIN:VEVENT\nSUMMARY:"+ binding.editTextCalTitle.text.toString()+
+                "BEGIN:VEVENT\nSUMMARY:" + binding.editTextCalTitle.text.toString() +
                         "\nLOCATION:" + binding.editTextCalLocation.text.toString() +
                         "\nDTSTART:" + dateFormatter.format(startDate!!.time) +
                         "\nDTEND:" + dateFormatter.format(endDate!!.time) +
                         "\nEND:VEVENT"
             }
-            "PDF" -> pdfName
+            qrContentTypeList[6] -> pdfName
             else -> "ERROR"
         }
     }
 
     private fun decodeAndLoadQRContent(encodedContent: String) {
         val content = URLDecoder.decode(encodedContent)
-        when  {
+        when {
             content.startsWith("mailto:", ignoreCase = true) -> {
                 val decodedMail = MailTo.parse(content)
 
@@ -581,7 +619,8 @@ class EditFragment : Fragment() {
 
                 val title = decodedEvent[1].split(":")[1]
                 val location = decodedEvent[2].split(":")[1]
-                val start = dateFormatter.format(parseFormatter.parse(decodedEvent[3].split(":")[1]))
+                val start =
+                    dateFormatter.format(parseFormatter.parse(decodedEvent[3].split(":")[1]))
                 val end = dateFormatter.format(parseFormatter.parse(decodedEvent[4].split(":")[1]))
 
                 loadQRContentView(5)
@@ -606,13 +645,13 @@ class EditFragment : Fragment() {
     private fun saveImage() {
         if (qrImageBitmap == null) Toast.makeText(
             binding.root.context,
-            "Genera un codigo QR primero",
+            "Crea un código QR primero.",
             Toast.LENGTH_SHORT
         ).show() else (activity as HomeActivity).GuardarQR(getEncodedContent(), qrImageBitmap!!)
     }
 
     fun onBackPressed() {
-        parentFragmentManager.popBackStackImmediate();
+        parentFragmentManager.popBackStackImmediate()
     }
 
     override fun onDestroyView() {

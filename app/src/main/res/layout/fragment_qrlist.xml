@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="match_parent"
-    tools:context=".fragments.QRListFragment"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context=".fragments.QRListFragment">
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
     <ListView
         android:id="@+id/listaQR"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="10dp"
-        android:paddingBottom="70dp" />
+        android:paddingBottom="60dp" />
 
     <ProgressBar
         android:id="@+id/progress_circular"
@@ -24,8 +30,8 @@
         android:id="@+id/textViewEmpty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
         android:layout_gravity="center"
         android:text="No tienes codigos creados"
-        android:textSize="24sp"/>
-</FrameLayout>
+        android:textSize="24sp"
+        android:visibility="gone" />
+</LinearLayout>
